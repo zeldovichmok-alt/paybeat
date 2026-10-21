@@ -400,8 +400,7 @@
   <script>
     (() => {
       if (new URLSearchParams(window.location.search).get('popup') === '1') document.body.classList.add('popup-mode');
-      const STORAGE_KEY = 'second-pay-state-v5-onboarding';
-      const LEGACY_KEY = 'second-pay-state-v2';
+      const STORAGE_KEY = 'paybeat-classic-state-v6-private';
       const DEFAULT_WINDOWS = [[10 * 60, 12 * 60], [13 * 60 + 30, 18 * 60]];
       const DEFAULT_WORKDAYS = [1, 2, 3, 4, 5];
       const $ = (id) => document.getElementById(id);
@@ -411,7 +410,7 @@
         timer: $('timer'), earned: $('earned'), earnPerSecond: $('earnPerSecond'), earnLiveText: $('earnLiveText'), liveRegion: $('liveRegion'), statePill: $('statePill'), mainAction: $('mainAction'), finishAction: $('finishAction'), resetAction: $('resetAction'), historyList: $('historyList'), clearHistory: $('clearHistory'),
         monthlyDialog: $('monthlyDialog'), openSettings: $('openSettings'), popupAction: $('popupAction'), closeSettings: $('closeSettings'), cancelSettings: $('cancelSettings'), saveSettings: $('saveSettings'), dialogLockNote: $('dialogLockNote')
       };
-      const defaultState = { status: 'idle', monthlySalary: '10000', monthKey: currentMonthKey(), currency: '¥', workdays: DEFAULT_WORKDAYS.slice(), workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', autoStart: true, profileComplete: false, pendingSettings: null, accumulatedMs: 0, startedAt: null, sessionDate: dateKey(), settledAmount: null, settledCurrency: null, history: [], automationVersion: 6, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '' };
+      const defaultState = { status: 'idle', monthlySalary: '10000', monthKey: currentMonthKey(), currency: '¥', workdays: DEFAULT_WORKDAYS.slice(), workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', autoStart: true, profileComplete: false, pendingSettings: null, accumulatedMs: 0, startedAt: null, sessionDate: dateKey(), settledAmount: null, settledCurrency: null, history: [], automationVersion: 7, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '' };
       let state = loadState();
       let ticker = null;
 
@@ -444,15 +443,7 @@
       }
       function loadState() {
         try {
-          let saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-          let migrated = false;
-          if (!saved) {
-            const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
-            if (legacy) {
-              saved = {...legacy, monthlySalary: '10000', workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', profileComplete: false, status: 'idle', pendingSettings: null, accumulatedMs: 0, startedAt: null, settledAmount: null, settledCurrency: null, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '', automationVersion: 6};
-              migrated = true;
-            }
-          }
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
           if (!saved) return {...defaultState};
           const next = {...defaultState, ...saved, history: Array.isArray(saved.history) ? saved.history.slice(0, 31) : []};
           if (!Array.isArray(next.workdays) || !next.workdays.length) next.workdays = DEFAULT_WORKDAYS.slice();
@@ -460,7 +451,7 @@
           next.workStart = next.workStart || '10:00'; next.workEnd = next.workEnd || '18:00'; next.breakStart = next.breakStart || '12:00'; next.breakEnd = next.breakEnd || '13:30';
           if (typeof next.autoStart !== 'boolean') next.autoStart = true;
           if (!next.profileComplete) { next.status = 'idle'; next.accumulatedMs = 0; next.startedAt = null; next.autoPaused = false; next.dayRecorded = false; next.settledAmount = null; next.settledCurrency = null; }
-          next.automationVersion = 6;
+          next.automationVersion = 7;
           if (!/^\d{4}-\d{2}-\d{2}$/.test(next.sessionDate || '')) next.sessionDate = dateKey();
           return next;
         } catch { return {...defaultState}; }

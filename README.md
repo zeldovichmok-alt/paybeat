@@ -31,3 +31,7 @@ node pay-server.js
 - `pay-server.js`：本地静态服务
 
 后续迭代请以这个文件夹为基准，原始设计文件仍保存在上一级 `outputs` 文件夹。
+
+## Figma 交接
+
+当前经典版的画板尺寸、间距、颜色、字体、组件和状态数据见 [docs/ui-specs-v1.md](docs/ui-specs-v1.md)。
