@@ -24,12 +24,12 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, '0.0.0.0', () => {
-  console.log(`电脑打开: http://localhost:${port}/pay-by-second.html`);
-  console.log(`默认分享小窗: http://localhost:${port}/pay-by-second.html?popup=1`);
+  console.log(`电脑打开: http://localhost:${port}/index.html`);
+  console.log(`默认分享小窗: http://localhost:${port}/index.html?popup=1`);
   console.log(`创意实验版（可随时撤回）: http://localhost:${port}/pay-by-second-readymag.html`);
   for (const address of lanAddresses()) {
-    console.log(`手机同一 Wi-Fi 打开: http://${address}:${port}/pay-by-second.html`);
-    console.log(`手机/朋友默认小窗: http://${address}:${port}/pay-by-second.html?popup=1`);
+    console.log(`手机同一 Wi-Fi 打开: http://${address}:${port}/index.html`);
+    console.log(`手机/朋友默认小窗: http://${address}:${port}/index.html?popup=1`);
   }
   console.log('保持此窗口运行即可让手机访问；按 Ctrl+C 停止。');
 });
