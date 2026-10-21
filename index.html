@@ -1,0 +1,581 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b1020" />
+  <title>工资跳动 · PAYBEAT</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090d18;
+      --bg-soft: #101728;
+      --panel: rgba(20, 28, 46, .84);
+      --panel-strong: #162039;
+      --line: rgba(185, 199, 231, .14);
+      --text: #f4f6fb;
+      --muted: #9da8c0;
+      --muted-2: #68758f;
+      --accent: #b8f36b;
+      --accent-deep: #83cf41;
+      --accent-soft: rgba(184, 243, 107, .12);
+      --orange: #ffb260;
+      --danger: #ff8178;
+      --shadow: 0 24px 70px rgba(0, 0, 0, .28);
+    }
+
+    * { box-sizing: border-box; }
+    html { min-width: 320px; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, rgba(114, 139, 229, .17), transparent 32rem),
+        radial-gradient(circle at 92% 12%, rgba(184, 243, 107, .09), transparent 28rem),
+        var(--bg);
+      letter-spacing: .01em;
+    }
+
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(184, 243, 107, .42); outline-offset: 3px; }
+
+    .shell { width: min(1120px, calc(100% - 40px)); margin: 0 auto; padding: 32px 0 48px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 30px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark { width: 36px; height: 36px; display: grid; place-items: center; border-radius: 12px; color: #101610; background: var(--accent); font-size: 15px; font-weight: 900; letter-spacing: -.08em; box-shadow: 0 0 0 6px rgba(184,243,107,.08); }
+    .brand-name { font-weight: 800; letter-spacing: .16em; font-size: 13px; }
+    .brand-sub { margin-top: 2px; color: var(--muted-2); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
+    .privacy { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+    .privacy-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+
+    .intro { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    h1 { margin: 0; font-size: clamp(30px, 4vw, 52px); line-height: 1; letter-spacing: -.06em; font-weight: 650; }
+    .intro-copy { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+    .session-state { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(255,255,255,.03); font-size: 12px; white-space: nowrap; }
+    .session-state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--muted-2); }
+    .session-state.running { color: var(--accent); border-color: rgba(184,243,107,.26); background: var(--accent-soft); }
+    .session-state.running::before { background: var(--accent); box-shadow: 0 0 0 4px rgba(184,243,107,.12); }
+    .session-state.paused { color: var(--orange); border-color: rgba(255,178,96,.25); background: rgba(255,178,96,.09); }
+    .session-state.paused::before { background: var(--orange); }
+    .session-state.done { color: #c8d0e3; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, .85fr); gap: 16px; align-items: start; }
+    .panel { border: 1px solid var(--line); background: linear-gradient(145deg, rgba(24,34,57,.92), rgba(14,21,36,.92)); border-radius: 24px; box-shadow: var(--shadow); }
+    .timer-panel { min-height: 510px; padding: clamp(22px, 4vw, 38px); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; }
+    .timer-panel::after { content: ""; position: absolute; width: 270px; height: 270px; right: -100px; top: -120px; border-radius: 50%; border: 1px solid rgba(184,243,107,.13); box-shadow: 0 0 0 34px rgba(184,243,107,.025), 0 0 0 68px rgba(184,243,107,.018); pointer-events: none; }
+    .eyebrow { color: var(--muted); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+    .timer-wrap { padding: 58px 0 42px; position: relative; z-index: 1; }
+    .timer { margin: 0; font-size: clamp(62px, 10vw, 126px); font-variant-numeric: tabular-nums; letter-spacing: -.09em; line-height: .95; font-weight: 520; }
+    .timer span { color: var(--muted-2); padding: 0 .07em; font-size: .48em; letter-spacing: -.05em; vertical-align: .08em; }
+    .earn-stage { margin-top: 28px; padding: 22px 24px 18px; border: 1px solid rgba(184,243,107,.22); border-radius: 22px; background: linear-gradient(145deg, rgba(184,243,107,.13), rgba(184,243,107,.035)); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 0 42px rgba(184,243,107,.055); }
+    .earn-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .money-label { color: var(--muted); font-size: 13px; }
+    .earn-live { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); font-size: 11px; }
+    .earn-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px rgba(184,243,107,.12); }
+    .money { margin-top: 12px; font-size: clamp(54px, 8vw, 88px); line-height: .96; letter-spacing: -.08em; font-variant-numeric: tabular-nums; color: var(--accent); text-shadow: 0 0 34px rgba(184,243,107,.16); }
+    .money.is-ticking { animation: money-tick 1s ease-in-out infinite; }
+    .money .currency { font-size: .52em; vertical-align: .13em; margin-right: 4px; color: rgba(184,243,107,.72); }
+    .earn-ticker { display: flex; align-items: baseline; gap: 8px; margin-top: 13px; color: var(--muted); font-size: 12px; }
+    .earn-ticker strong { color: var(--accent); font-size: 15px; font-weight: 650; font-variant-numeric: tabular-nums; }
+    @keyframes money-tick { 0%, 100% { transform: translateY(0); text-shadow: 0 0 30px rgba(184,243,107,.14); } 50% { transform: translateY(-2px); text-shadow: 0 0 42px rgba(184,243,107,.34); } }
+    @media (prefers-reduced-motion: reduce) { .money.is-ticking { animation: none; } }
+    .timer-meta { display: flex; gap: 26px; padding-top: 24px; border-top: 1px solid var(--line); position: relative; z-index: 1; }
+    .metric { min-width: 120px; }
+    .metric-label { color: var(--muted-2); font-size: 12px; }
+    .metric-value { margin-top: 6px; font-size: 16px; font-variant-numeric: tabular-nums; }
+    .metric-value small { color: var(--muted); font-size: 11px; }
+    .controls { display: flex; align-items: center; gap: 10px; margin-top: 30px; position: relative; z-index: 1; }
+    .btn { min-height: 46px; border: 1px solid var(--line); border-radius: 13px; padding: 0 17px; color: var(--text); background: rgba(255,255,255,.045); transition: transform .18s ease, background .18s ease, border-color .18s ease; }
+    .btn:hover { transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(185,199,231,.28); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { flex: 1; border-color: transparent; color: #0e160a; background: var(--accent); font-weight: 750; }
+    .btn-primary:hover { background: #c6fa81; border-color: transparent; }
+    .btn-quiet { color: var(--muted); }
+    .btn-danger { color: var(--danger); }
+    .btn[disabled] { cursor: not-allowed; opacity: .42; transform: none; }
+
+    .side { display: flex; flex-direction: column; gap: 16px; }
+    .settings-panel { padding: 22px; }
+    .settings-summary { padding: 22px; }
+    .settings-summary .summary-line { display: flex; align-items: end; justify-content: space-between; gap: 14px; margin: 19px 0 20px; }
+    .summary-amount { font-size: 28px; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+    .summary-caption { margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .summary-month { text-align: right; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .summary-month strong { display: block; color: var(--text); font-size: 15px; font-weight: 500; }
+    .settings-summary .btn { width: 100%; }
+    .schedule-strip { display: flex; justify-content: space-between; gap: 10px; padding: 13px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 11px; }
+    .schedule-strip strong { color: var(--text); font-weight: 500; }
+    dialog { width: min(460px, calc(100% - 28px)); max-height: calc(100vh - 24px); overflow: auto; border: 1px solid rgba(185,199,231,.2); border-radius: 22px; padding: 0; color: var(--text); background: #121b30; box-shadow: 0 28px 90px rgba(0,0,0,.55); }
+    dialog[open] { display: block; position: fixed; z-index: 1000; inset: 50% auto auto 50%; margin: 0; transform: translate(-50%, -50%); }
+    dialog::backdrop { background: rgba(2,5,12,.68); backdrop-filter: blur(5px); }
+    .dialog-inner { padding: 24px; }
+    .dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .dialog-title { margin: 0; font-size: 21px; letter-spacing: -.03em; }
+    .dialog-subtitle { margin: 7px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .dialog-close { min-width: 34px; min-height: 34px; border: 1px solid var(--line); border-radius: 10px; color: var(--muted); background: transparent; font-size: 18px; line-height: 1; }
+    .dialog-close:hover { color: var(--text); background: rgba(255,255,255,.06); }
+    .dialog-field + .dialog-field { margin-top: 16px; }
+    .dialog-field label { display: block; margin-bottom: 8px; color: var(--muted); }
+    .dialog-field input, .dialog-field select { background: rgba(255,255,255,.07); }
+    .time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+    .time-grid .dialog-field + .dialog-field { margin-top: 0; }
+    .weekday-picker { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .weekday-picker label { position: relative; margin: 0; cursor: pointer; }
+    .weekday-picker input { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+    .weekday-picker span { display: grid; place-items: center; min-height: 38px; border: 1px solid var(--line); color: var(--muted); font-size: 13px; transition: .18s ease; }
+    .weekday-picker input:checked + span { color: #101610; border-color: var(--accent); background: var(--accent); font-weight: 800; }
+    .switch-row { display: flex; align-items: center; gap: 10px; margin-top: 18px; cursor: pointer; }
+    .switch-row input { width: 18px; height: 18px; accent-color: var(--accent-deep); }
+    .switch-row span { display: grid; gap: 3px; color: var(--text); font-size: 13px; }
+    .switch-row small { color: var(--muted); font-size: 11px; }
+    .schedule-card { margin-top: 18px; padding: 14px; border: 1px solid rgba(184,243,107,.18); border-radius: 14px; background: rgba(184,243,107,.07); }
+    .schedule-card-title { color: var(--accent); font-size: 12px; }
+    .schedule-card-copy { margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .pending-settings { margin: 10px 0 0; padding: 9px 10px; border-left: 3px solid var(--accent); color: var(--muted); background: var(--accent-soft); font-size: 11px; line-height: 1.45; }
+    .dialog-actions { display: flex; gap: 10px; margin-top: 22px; }
+    .dialog-actions .btn { flex: 1; }
+    .lock-note { margin: 13px 0 0; color: var(--muted-2); font-size: 11px; line-height: 1.5; }
+    .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-bottom: 20px; }
+    .panel-title { margin: 0; font-size: 14px; font-weight: 600; }
+    .panel-kicker { color: var(--muted-2); font-size: 11px; }
+    .field + .field { margin-top: 16px; }
+    .label-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 8px; }
+    label { color: var(--muted); font-size: 12px; }
+    .hint { color: var(--muted-2); font-size: 11px; }
+    .input-row { display: flex; align-items: stretch; }
+    .input-prefix { display: grid; place-items: center; min-width: 48px; border: 1px solid var(--line); border-right: 0; border-radius: 12px 0 0 12px; color: var(--muted); background: rgba(255,255,255,.035); }
+    input, select { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 12px; padding: 0 13px; color: var(--text); background: rgba(255,255,255,.055); }
+    .input-row input { border-radius: 0 12px 12px 0; font-size: 17px; font-variant-numeric: tabular-nums; }
+    select { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 17px) 20px, calc(100% - 12px) 20px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; }
+    .rate-preview { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .rate-preview span { color: var(--muted); font-size: 12px; }
+    .rate-preview strong { color: var(--accent); font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .note { margin: 18px 0 0; color: var(--muted-2); font-size: 11px; line-height: 1.7; }
+
+    .history-panel { padding: 22px; }
+    .history-list { display: flex; flex-direction: column; gap: 0; }
+    .history-empty { padding: 18px 0 4px; color: var(--muted-2); font-size: 12px; line-height: 1.6; }
+    .history-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); }
+    .history-main { min-width: 0; }
+    .history-amount { font-size: 15px; font-variant-numeric: tabular-nums; }
+    .history-date { margin-top: 4px; color: var(--muted-2); font-size: 11px; }
+    .history-time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .clear-history { border: 0; padding: 0; color: var(--muted-2); background: transparent; font-size: 11px; }
+    .clear-history:hover { color: var(--danger); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    .live-region { min-height: 18px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    /* Compact, discreet desktop popup: keep the classic visual language while
+       removing the large product framing around the live counter. */
+    body.popup-mode { background: #0d111b; }
+    .popup-mode .shell { width: min(100% - 28px, 360px); padding: 14px 0 16px; }
+    .popup-mode .topbar, .popup-mode .intro, .popup-mode .privacy, .popup-mode .settings-summary, .popup-mode .history-panel { display: none; }
+    .popup-mode .layout { display: block; }
+    .popup-mode .timer-panel { min-height: 0; padding: 18px; border-radius: 16px; box-shadow: 0 12px 35px rgba(0,0,0,.22); }
+    .popup-mode .eyebrow { font-size: 10px; letter-spacing: .1em; }
+    .popup-mode .timer-wrap { padding: 28px 0 22px; }
+    .popup-mode .timer { font-size: clamp(48px, 15vw, 72px); letter-spacing: -.07em; }
+    .popup-mode .earn-stage { margin-top: 18px; padding: 16px 17px 14px; border-radius: 14px; }
+    .popup-mode .money { font-size: clamp(42px, 13vw, 62px); }
+    .popup-mode .timer-meta { padding-top: 16px; gap: 18px; }
+    .popup-mode .metric { min-width: 0; }
+    .popup-mode .metric-value { font-size: 14px; }
+    .popup-mode .controls { margin-top: 18px; }
+    .popup-mode .controls .btn { min-height: 40px; padding: 0 11px; font-size: 12px; }
+
+    @media (max-width: 780px) {
+      .shell { width: min(100% - 28px, 620px); padding-top: 22px; padding-bottom: 110px; }
+      .topbar { margin-bottom: 25px; }
+      .privacy { font-size: 11px; }
+      .intro { display: block; }
+      .session-state { margin-top: 18px; }
+      .layout { display: flex; flex-direction: column; }
+      .timer-panel { width: 100%; min-height: 475px; }
+      .side { width: 100%; }
+      .controls { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; margin: 0; padding: 14px max(14px, calc((100vw - 620px) / 2)); background: rgba(9,13,24,.9); border-top: 1px solid var(--line); backdrop-filter: blur(16px); }
+      .controls .btn { min-height: 50px; }
+    }
+    @media (max-width: 430px) {
+      .timer-panel { padding: 20px; border-radius: 20px; }
+      .timer-wrap { padding: 64px 0 38px; }
+      .timer { font-size: clamp(54px, 17vw, 78px); }
+      .money { font-size: 39px; }
+      .timer-meta { gap: 14px; }
+      .metric { min-width: 0; flex: 1; }
+      .settings-panel, .settings-summary, .history-panel { padding: 20px; }
+      .btn { padding: 0 12px; }
+    }
+
+    /* Editorial international layout: strict grid, oversized numerals, lime signal color. */
+    :root {
+      color-scheme: light;
+      --bg: #e9e8e3;
+      --bg-soft: #f7f6f1;
+      --panel: #f7f6f1;
+      --panel-strong: #111111;
+      --line: #171717;
+      --text: #111111;
+      --muted: #5f5f5b;
+      --muted-2: #777772;
+      --accent: #d7ff00;
+      --accent-deep: #b8da00;
+      --accent-soft: rgba(215,255,0,.24);
+      --orange: #8d4d00;
+      --danger: #aa1c18;
+      --shadow: 7px 7px 0 rgba(17,17,17,.14);
+    }
+    body {
+      font-family: Arial, Helvetica, "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      letter-spacing: -.01em;
+    }
+    .shell { width: min(1280px, calc(100% - 48px)); padding: 24px 0 56px; }
+    .topbar { margin-bottom: 30px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .brand { gap: 10px; }
+    .brand-mark { width: 34px; height: 34px; border-radius: 0; color: var(--accent); background: var(--text); box-shadow: none; }
+    .brand-name { font-size: 14px; letter-spacing: .18em; }
+    .brand-sub { color: var(--muted); letter-spacing: .16em; }
+    .privacy { color: var(--muted); }
+    .privacy-dot { border-radius: 0; background: var(--text); box-shadow: none; }
+    .intro { align-items: end; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+    h1 { font-size: clamp(44px, 7vw, 86px); font-weight: 800; letter-spacing: -.085em; line-height: .86; }
+    .intro-copy { margin-top: 15px; color: var(--muted); font-size: 13px; }
+    .session-state { border-radius: 0; border-color: var(--line); color: var(--text); background: transparent; text-transform: uppercase; letter-spacing: .08em; }
+    .session-state::before { border-radius: 0; background: var(--text); box-shadow: none; }
+    .session-state.running { color: var(--text); border-color: var(--text); background: var(--accent); }
+    .session-state.running::before { background: var(--text); box-shadow: none; }
+    .session-state.paused { color: var(--text); border-color: var(--text); background: #f2c46b; }
+    .session-state.paused::before { background: var(--text); }
+    .session-state.done { color: var(--text); border-color: var(--text); background: transparent; }
+    .layout { grid-template-columns: minmax(0, 1.8fr) minmax(290px, .72fr); gap: 22px; }
+    .panel { border: 1px solid var(--line); border-radius: 0; background: var(--panel); box-shadow: var(--shadow); }
+    .timer-panel { min-height: 590px; padding: clamp(24px, 4vw, 46px); background: var(--panel); box-shadow: 10px 10px 0 var(--text); }
+    .timer-panel::before { content: "01"; position: absolute; right: 30px; bottom: 42px; color: var(--text); opacity: .06; font-size: clamp(180px, 28vw, 430px); line-height: .7; font-weight: 800; letter-spacing: -.14em; pointer-events: none; }
+    .timer-panel::after { width: 100%; height: 100%; right: 0; top: 0; border: 0; border-radius: 0; box-shadow: none; opacity: .4; background-image: linear-gradient(rgba(17,17,17,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,.04) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; }
+    .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .18em; }
+    .timer-wrap { padding: 76px 0 52px; }
+    .timer { font-size: clamp(76px, 13vw, 178px); color: var(--text); font-weight: 800; letter-spacing: -.055em; }
+    .timer span { color: var(--muted-2); }
+    .earn-stage { margin-top: 34px; padding: 24px 26px 21px; border: 1px solid var(--line); border-radius: 0; background: var(--accent); box-shadow: none; }
+    .money-label, .earn-live, .earn-ticker { color: var(--text); }
+    .earn-live { font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+    .earn-live::before { border-radius: 0; background: var(--text); box-shadow: none; }
+    .money { color: var(--text); text-shadow: none; font-size: clamp(62px, 10vw, 122px); font-weight: 800; letter-spacing: -.05em; }
+    .money .currency { color: var(--text); }
+    .earn-ticker strong { color: var(--text); }
+    .money.is-ticking { animation: editorial-tick 1s steps(2, end) infinite; }
+    @keyframes editorial-tick { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    .live-region { color: var(--muted); font-size: 12px; }
+    .timer-meta { border-top-color: var(--line); }
+    .metric-label { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 10px; }
+    .metric-value { color: var(--text); font-weight: 700; }
+    .metric-value small { color: var(--muted); }
+    .controls { margin-top: 34px; }
+    .btn { min-height: 48px; border-radius: 0; border-color: var(--line); color: var(--text); background: transparent; }
+    .btn:hover { background: var(--text); color: var(--bg-soft); border-color: var(--text); }
+    .btn-primary { color: var(--accent); background: var(--text); border-color: var(--text); }
+    .btn-primary:hover { color: var(--text); background: var(--accent); border-color: var(--text); }
+    .btn-quiet { color: var(--muted); }
+    .btn-danger { color: var(--danger); }
+    .side { gap: 22px; }
+    .settings-summary, .history-panel { position: relative; padding: 24px; box-shadow: 5px 5px 0 rgba(17,17,17,.12); }
+    .settings-summary::before { content: "02"; position: absolute; right: 18px; top: 14px; color: var(--text); opacity: .12; font-size: 42px; line-height: 1; font-weight: 800; }
+    .history-panel::before { content: "03"; position: absolute; right: 18px; top: 14px; color: var(--text); opacity: .12; font-size: 42px; line-height: 1; font-weight: 800; }
+    .panel-heading { border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px; }
+    .panel-title { letter-spacing: .04em; text-transform: uppercase; }
+    .panel-kicker { color: var(--muted); letter-spacing: .1em; }
+    .summary-amount { font-size: 33px; font-weight: 800; }
+    .summary-caption, .summary-month, .schedule-strip, .note { color: var(--muted); }
+    .summary-month strong, .schedule-strip strong { color: var(--text); }
+    .schedule-strip { border-color: var(--line); }
+    .settings-summary .btn { margin-top: 8px; }
+    .note { line-height: 1.55; }
+    .history-item { border-top-color: var(--line); }
+    .history-amount { font-weight: 700; }
+    .history-date, .history-time, .history-empty { color: var(--muted); }
+    .clear-history { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    dialog { border-radius: 0; border-color: var(--line); color: var(--text); background: var(--panel); box-shadow: 10px 10px 0 var(--text); }
+    dialog::backdrop { background: rgba(17,17,17,.6); backdrop-filter: none; }
+    .dialog-title { font-weight: 800; }
+    .dialog-subtitle, .dialog-field label, .lock-note { color: var(--muted); }
+    .dialog-close { border-radius: 0; border-color: var(--line); color: var(--text); }
+    .dialog-close:hover { color: var(--accent); background: var(--text); }
+    .dialog-field input, .dialog-field select, input, select { border-radius: 0; border-color: var(--line); color: var(--text); background: transparent; }
+    .input-prefix { border-color: var(--line); border-radius: 0; color: var(--text); background: var(--accent); }
+    .schedule-card { border-radius: 0; border-color: var(--line); background: var(--accent); }
+    .schedule-card-title, .schedule-card-copy { color: var(--text); }
+    .weekday-picker span { border-color: var(--line); }
+    .weekday-picker input:checked + span { color: var(--text); border-color: var(--accent); background: var(--accent); }
+    @media (max-width: 780px) {
+      .shell { width: min(100% - 28px, 620px); }
+      .timer-panel { box-shadow: 6px 6px 0 var(--text); }
+      .timer-panel::before { right: 16px; bottom: 70px; font-size: 190px; }
+      .earn-stage { padding: 20px 18px 17px; }
+      .settings-summary, .history-panel { box-shadow: 4px 4px 0 rgba(17,17,17,.12); }
+      .controls { background: rgba(233,232,227,.94); border-top-color: var(--line); }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand" aria-label="PAYBEAT 工资跳动">
+        <div class="brand-mark" aria-hidden="true">p/</div>
+        <div><div class="brand-name">PAYBEAT</div><div class="brand-sub">Every second counts.</div></div>
+      </div>
+      <div class="privacy"><span class="privacy-dot" aria-hidden="true"></span>数据只保存在本机</div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <h1 id="page-title">工资跳动</h1>
+        <p class="intro-copy">先设置你的工资和工作时间，之后每一秒都会按规则计费。</p>
+      </div>
+      <div id="statePill" class="session-state">还没开始</div>
+    </section>
+
+    <div class="layout">
+      <section class="panel timer-panel" aria-labelledby="timer-heading">
+        <div class="eyebrow" id="timer-heading">LIVE PAY / TODAY</div>
+        <div class="timer-wrap">
+          <div class="timer" id="timer" aria-live="off">00<span>:</span>00<span>:</span>00</div>
+          <div class="earn-stage" aria-label="实时收入">
+            <div class="earn-heading"><span class="money-label">今天已经挣到</span><span class="earn-live" id="earnLiveText">收入正在增加</span></div>
+            <div class="money" id="earned" aria-live="polite"><span class="currency">¥</span>0.00</div>
+            <div class="earn-ticker"><span>每秒增加</span><strong id="earnPerSecond">¥0.0000</strong></div>
+          </div>
+          <div class="live-region" id="liveRegion" aria-live="polite">设置月薪后，工作日每天 09:00 自动计时。</div>
+        </div>
+        <div>
+          <div class="timer-meta">
+            <div class="metric"><div class="metric-label">每秒单价</div><div class="metric-value" id="perSecond">¥0.0000 <small>/ 秒</small></div></div>
+            <div class="metric"><div class="metric-label">本月工作日</div><div class="metric-value" id="workdayCount">0 <small>天</small></div></div>
+          </div>
+          <div class="controls">
+            <button class="btn btn-primary" id="mainAction" type="button">暂停今天</button>
+            <button class="btn btn-quiet" id="finishAction" type="button" disabled>结束并结算</button>
+            <button class="btn btn-danger" id="resetAction" type="button" disabled aria-label="重置本次计费">重置</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="panel settings-summary" aria-labelledby="settings-title">
+          <div class="panel-heading"><h2 class="panel-title" id="settings-title">计薪设置</h2><span class="panel-kicker">PAY RULES</span></div>
+          <div class="summary-line"><div><div class="summary-amount" id="monthlySummary">未设置</div><div class="summary-caption">月薪</div></div><div class="summary-month"><strong id="selectedMonthLabel">—</strong><span id="scheduleSummary">完成设置后显示</span></div></div>
+          <div class="schedule-strip"><span>工作时段</span><strong id="workScheduleSummary">—</strong></div>
+          <button class="btn" id="openSettings" type="button">编辑工资规则</button>
+          <button class="btn btn-quiet" id="popupAction" type="button">在电脑弹窗打开</button>
+          <p class="pending-settings" id="pendingSettingsNote" hidden>新规则将在下一个工作日生效，今天的金额保持不变。</p>
+          <p class="note">每天单独结算，昨天的金额只保存在记录里；未选中的工作日和休息时间不计费。</p>
+        </section>
+
+        <section class="panel history-panel" aria-labelledby="history-title">
+          <div class="panel-heading"><h2 class="panel-title" id="history-title">最近结算</h2><button class="clear-history" id="clearHistory" type="button">清空记录</button></div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </aside>
+    </div>
+  </main>
+
+  <dialog id="monthlyDialog" aria-labelledby="dialogTitle">
+    <form class="dialog-inner" method="dialog">
+      <div class="dialog-heading"><div><h2 class="dialog-title" id="dialogTitle">开始前，先设置工资规则</h2><p class="dialog-subtitle" id="dialogSubtitle">按你的真实上班方式填写，保存后才会开始计费。</p></div><button class="dialog-close" id="closeSettings" type="button" aria-label="关闭设置">×</button></div>
+      <div class="dialog-field"><label for="monthlySalary">月薪</label><div class="input-row"><span class="input-prefix" id="dialogCurrencyPrefix">¥</span><input id="monthlySalary" type="number" inputmode="decimal" min="0" step="0.01" placeholder="例如 10000" autocomplete="off" /></div></div>
+      <div class="dialog-field"><label for="monthKey">结算月份</label><input id="monthKey" type="month" /></div>
+      <div class="dialog-field"><label for="currency">货币</label><select id="currency" aria-label="选择货币"><option value="¥">人民币（¥）</option><option value="$">美元（$）</option><option value="€">欧元（€）</option><option value="£">英镑（£）</option></select></div>
+      <div class="dialog-field"><label>工作日</label><div class="weekday-picker" id="weekdayPicker" role="group" aria-label="选择工作日"><label><input type="checkbox" value="1"><span>一</span></label><label><input type="checkbox" value="2"><span>二</span></label><label><input type="checkbox" value="3"><span>三</span></label><label><input type="checkbox" value="4"><span>四</span></label><label><input type="checkbox" value="5"><span>五</span></label><label><input type="checkbox" value="6"><span>六</span></label><label><input type="checkbox" value="7"><span>日</span></label></div></div>
+      <div class="time-grid"><div class="dialog-field"><label for="workStart">上班时间</label><input id="workStart" type="time" value="10:00" /></div><div class="dialog-field"><label for="workEnd">下班时间</label><input id="workEnd" type="time" value="18:00" /></div></div>
+      <div class="time-grid"><div class="dialog-field"><label for="breakStart">午休开始</label><input id="breakStart" type="time" value="12:00" /></div><div class="dialog-field"><label for="breakEnd">午休结束</label><input id="breakEnd" type="time" value="13:30" /></div></div>
+      <label class="switch-row"><input id="autoStart" type="checkbox" checked /><span><strong>工作日自动开始</strong><small>到上班时间后自动计费</small></span></label>
+      <div class="schedule-card" id="schedulePreview"><div class="schedule-card-title">规则预览</div><div class="schedule-card-copy">每天可计费 8 小时 · 每秒收入会根据你的设置计算。</div></div>
+      <p class="lock-note" id="dialogLockNote" hidden>正在计费：保存后新规则从下一个工作日生效，今天已经产生的金额不会被重算。</p>
+      <div class="dialog-actions"><button class="btn" id="cancelSettings" type="button">取消</button><button class="btn btn-primary" id="saveSettings" type="button">保存并开始计费</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    (() => {
+      if (new URLSearchParams(window.location.search).get('popup') === '1') document.body.classList.add('popup-mode');
+      const STORAGE_KEY = 'second-pay-state-v5-onboarding';
+      const LEGACY_KEY = 'second-pay-state-v2';
+      const DEFAULT_WINDOWS = [[10 * 60, 12 * 60], [13 * 60 + 30, 18 * 60]];
+      const DEFAULT_WORKDAYS = [1, 2, 3, 4, 5];
+      const $ = (id) => document.getElementById(id);
+      const els = {
+        monthlySalary: $('monthlySalary'), monthKey: $('monthKey'), currency: $('currency'), dialogCurrencyPrefix: $('dialogCurrencyPrefix'), weekdayPicker: $('weekdayPicker'), workStart: $('workStart'), workEnd: $('workEnd'), breakStart: $('breakStart'), breakEnd: $('breakEnd'), autoStart: $('autoStart'), schedulePreview: $('schedulePreview'), dialogSubtitle: $('dialogSubtitle'),
+        monthlySummary: $('monthlySummary'), selectedMonthLabel: $('selectedMonthLabel'), scheduleSummary: $('scheduleSummary'), workScheduleSummary: $('workScheduleSummary'), workdayCount: $('workdayCount'), perSecond: $('perSecond'), pendingSettingsNote: $('pendingSettingsNote'),
+        timer: $('timer'), earned: $('earned'), earnPerSecond: $('earnPerSecond'), earnLiveText: $('earnLiveText'), liveRegion: $('liveRegion'), statePill: $('statePill'), mainAction: $('mainAction'), finishAction: $('finishAction'), resetAction: $('resetAction'), historyList: $('historyList'), clearHistory: $('clearHistory'),
+        monthlyDialog: $('monthlyDialog'), openSettings: $('openSettings'), popupAction: $('popupAction'), closeSettings: $('closeSettings'), cancelSettings: $('cancelSettings'), saveSettings: $('saveSettings'), dialogLockNote: $('dialogLockNote')
+      };
+      const defaultState = { status: 'idle', monthlySalary: '10000', monthKey: currentMonthKey(), currency: '¥', workdays: DEFAULT_WORKDAYS.slice(), workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', autoStart: true, profileComplete: false, pendingSettings: null, accumulatedMs: 0, startedAt: null, sessionDate: dateKey(), settledAmount: null, settledCurrency: null, history: [], automationVersion: 6, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '' };
+      let state = loadState();
+      let ticker = null;
+
+      function currentMonthKey() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`; }
+      function dateKey(now = Date.now()) { const d = new Date(now); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
+      function parseMonth(key) { const match = /^(\d{4})-(\d{2})$/.exec(key || ''); if (!match) return null; const year = Number(match[1]); const month = Number(match[2]); return month >= 1 && month <= 12 ? {year, month} : null; }
+      function monthBounds(key) { const info = parseMonth(key) || parseMonth(currentMonthKey()); return {start: new Date(info.year, info.month - 1, 1).getTime(), end: new Date(info.year, info.month, 1).getTime(), info}; }
+      function timeMinutes(value, fallback) { const match = /^(\d{2}):(\d{2})$/.exec(value || ''); if (!match) return fallback; const hours = Number(match[1]); const minutes = Number(match[2]); return hours >= 0 && hours < 24 && minutes >= 0 && minutes < 60 ? hours * 60 + minutes : fallback; }
+      function scheduleWindows() { const start = timeMinutes(state.workStart, DEFAULT_WINDOWS[0][0]); const end = timeMinutes(state.workEnd, DEFAULT_WINDOWS[1][1]); const breakStart = timeMinutes(state.breakStart, DEFAULT_WINDOWS[0][1]); const breakEnd = timeMinutes(state.breakEnd, DEFAULT_WINDOWS[1][0]); const windows = []; if (start < breakStart) windows.push([start, breakStart]); if (breakEnd < end) windows.push([breakEnd, end]); return windows.length ? windows : DEFAULT_WINDOWS; }
+      function isWorkday(date) { const day = date.getDay() || 7; return state.workdays.includes(day); }
+      function isWeekday(date) { return isWorkday(date); }
+      function dayStartMs(now = Date.now()) { const d = new Date(now); const mins = timeMinutes(state.workStart, DEFAULT_WINDOWS[0][0]); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(mins / 60), mins % 60, 0, 0).getTime(); }
+      function dayEndMs(now = Date.now()) { const d = new Date(now); const mins = timeMinutes(state.workEnd, DEFAULT_WINDOWS[1][1]); return new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(mins / 60), mins % 60, 0, 0).getTime(); }
+      function monthWorkdaysFor(key, workdays = state.workdays) { const {start, info} = monthBounds(key); const cursor = new Date(start); let count = 0; while (cursor.getMonth() === info.month - 1 && cursor.getFullYear() === info.year) { const day = cursor.getDay() || 7; if (workdays.includes(day)) count++; cursor.setDate(cursor.getDate() + 1); } return count; }
+      function monthWorkdays(key) { return monthWorkdaysFor(key, state.workdays); }
+      function scheduledMs(key) { const daily = scheduleWindows().reduce((sum, [start, end]) => sum + Math.max(0, end - start), 0) * 60 * 1000; return monthWorkdays(key) * daily; }
+      function billableMsBetween(from, to, key) {
+        if (!from || !to || to <= from) return 0;
+        const bounds = monthBounds(key); const start = Math.max(from, bounds.start); const end = Math.min(to, bounds.end); if (end <= start) return 0;
+        const first = new Date(start); first.setHours(0, 0, 0, 0); let total = 0;
+        for (const cursor = new Date(first); cursor.getTime() < end; cursor.setDate(cursor.getDate() + 1)) {
+          if (!isWorkday(cursor)) continue;
+          for (const [beginMinutes, endMinutes] of scheduleWindows()) {
+            const windowStart = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), Math.floor(beginMinutes / 60), beginMinutes % 60).getTime();
+            const windowEnd = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), Math.floor(endMinutes / 60), endMinutes % 60).getTime();
+            total += Math.max(0, Math.min(end, windowEnd) - Math.max(start, windowStart));
+          }
+        }
+        return total;
+      }
+      function loadState() {
+        try {
+          let saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+          let migrated = false;
+          if (!saved) {
+            const legacy = JSON.parse(localStorage.getItem(LEGACY_KEY) || 'null');
+            if (legacy) {
+              saved = {...legacy, monthlySalary: '10000', workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', profileComplete: false, status: 'idle', pendingSettings: null, accumulatedMs: 0, startedAt: null, settledAmount: null, settledCurrency: null, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '', automationVersion: 6};
+              migrated = true;
+            }
+          }
+          if (!saved) return {...defaultState};
+          const next = {...defaultState, ...saved, history: Array.isArray(saved.history) ? saved.history.slice(0, 31) : []};
+          if (!Array.isArray(next.workdays) || !next.workdays.length) next.workdays = DEFAULT_WORKDAYS.slice();
+          next.workdays = next.workdays.map(Number).filter((day) => day >= 1 && day <= 7).sort((a, b) => a - b);
+          next.workStart = next.workStart || '10:00'; next.workEnd = next.workEnd || '18:00'; next.breakStart = next.breakStart || '12:00'; next.breakEnd = next.breakEnd || '13:30';
+          if (typeof next.autoStart !== 'boolean') next.autoStart = true;
+          if (!next.profileComplete) { next.status = 'idle'; next.accumulatedMs = 0; next.startedAt = null; next.autoPaused = false; next.dayRecorded = false; next.settledAmount = null; next.settledCurrency = null; }
+          next.automationVersion = 6;
+          if (!/^\d{4}-\d{2}-\d{2}$/.test(next.sessionDate || '')) next.sessionDate = dateKey();
+          return next;
+        } catch { return {...defaultState}; }
+      }
+      function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function salaryValue() { const value = Number.parseFloat(state.monthlySalary); return Number.isFinite(value) && value >= 0 ? value : 0; }
+      function ratePerSecond() { const total = scheduledMs(state.monthKey); return total > 0 ? salaryValue() / (total / 1000) : 0; }
+      function sessionDayEndMs() {
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(state.sessionDate || '');
+        return match ? dayEndMs(new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3])).getTime()) : dayEndMs();
+      }
+      function elapsedMsAt(now = Date.now()) {
+        const liveTo = state.sessionDate && dateKey(now) !== state.sessionDate ? Math.min(now, sessionDayEndMs()) : now;
+        return state.accumulatedMs + (state.status === 'running' && state.startedAt ? billableMsBetween(state.startedAt, liveTo, state.monthKey) : 0);
+      }
+      function elapsedMs() { return elapsedMsAt(Date.now()); }
+      function automaticStartPoint(now = Date.now()) { return now < dayStartMs(now) ? dayStartMs(now) : dayStartMs(now); }
+      function formatTime(ms) { const total = Math.floor(ms / 1000); const h = Math.floor(total / 3600); const m = Math.floor((total % 3600) / 60); const s = total % 60; const pad = (n) => String(n).padStart(2, '0'); return `${pad(h)}<span>:</span>${pad(m)}<span>:</span>${pad(s)}`; }
+      function formatPlainTime(ms) { const total = Math.floor(ms / 1000); const h = Math.floor(total / 3600); const m = Math.floor((total % 3600) / 60); const s = total % 60; const pad = (n) => String(n).padStart(2, '0'); return `${pad(h)}:${pad(m)}:${pad(s)}`; }
+      function formatMoney(amount, decimals = 2) { return Number(amount || 0).toFixed(decimals); }
+      function monthLabel(key) { const bounds = monthBounds(key); return new Intl.DateTimeFormat('zh-CN', {year: 'numeric', month: 'long'}).format(new Date(bounds.start)); }
+      function appendHistory(elapsed, amount) {
+        if (state.dayRecorded) return;
+        if (elapsed > 0) state.history.unshift({amount, currency: state.currency, month: monthLabel(state.monthKey), duration: formatPlainTime(elapsed), date: state.sessionDate});
+        state.dayRecorded = true;
+      }
+      function settleDay(message, settlementTime = Date.now()) {
+        const elapsed = elapsedMsAt(settlementTime); const amount = elapsed / 1000 * ratePerSecond();
+        appendHistory(elapsed, amount);
+        state.accumulatedMs = elapsed; state.startedAt = null; state.settledAmount = amount; state.settledCurrency = state.currency; state.status = 'done'; state.autoPaused = true; state.finishedDate = state.sessionDate; state.pausedDate = null; state.notice = message; saveState();
+      }
+      function applySettings(settings) {
+        state.monthlySalary = settings.monthlySalary;
+        state.monthKey = settings.monthKey;
+        state.currency = settings.currency;
+        state.workdays = settings.workdays;
+        state.workStart = settings.workStart;
+        state.workEnd = settings.workEnd;
+        state.breakStart = settings.breakStart;
+        state.breakEnd = settings.breakEnd;
+        state.autoStart = settings.autoStart;
+        state.profileComplete = true;
+      }
+      function settingsFromDialog() {
+        return {
+          monthlySalary: String(Number.parseFloat(els.monthlySalary.value)),
+          monthKey: els.monthKey.value,
+          currency: els.currency.value,
+          workdays: selectedWorkdays(),
+          workStart: els.workStart.value,
+          workEnd: els.workEnd.value,
+          breakStart: els.breakStart.value,
+          breakEnd: els.breakEnd.value,
+          autoStart: els.autoStart.checked
+        };
+      }
+      function rollToToday() {
+        const today = dateKey();
+        if (state.sessionDate === today) return;
+        if (state.status === 'running' || state.status === 'paused') settleDay('上一工作日已结算。');
+        if (state.pendingSettings) { applySettings(state.pendingSettings); state.pendingSettings = null; }
+        state.sessionDate = today; state.monthKey = currentMonthKey(); state.status = 'idle'; state.accumulatedMs = 0; state.startedAt = null; state.settledAmount = null; state.settledCurrency = null; state.autoPaused = false; state.dayRecorded = false; state.pausedDate = null; state.finishedDate = null; state.notice = ''; saveState();
+      }
+      function autoStartIfNeeded() {
+        rollToToday();
+        const now = Date.now(); const bounds = monthBounds(state.monthKey); const today = new Date(now);
+        if (!state.profileComplete || !state.autoStart || state.status === 'done' || state.status === 'paused' || state.autoPaused || salaryValue() <= 0 || !isWorkday(today) || now < bounds.start || now >= bounds.end) return;
+        if (state.status === 'idle') { state.startedAt = automaticStartPoint(now); state.status = 'running'; state.notice = ''; saveState(); }
+      }
+      function autoFinishIfNeeded() {
+        if (state.status !== 'running' || !state.startedAt) return;
+        if (isWorkday(new Date()) && Date.now() >= dayEndMs()) { settleDay(`今天已自动结算，明天 ${state.workStart} 继续。`); }
+      }
+      function scheduleStatus() {
+        const now = Date.now(); const d = new Date(now);
+        if (!state.profileComplete) return '先完成工资和工作时间设置。';
+        if (!isWorkday(d)) return `今天不上班，下一个工作日 ${state.workStart} 自动开始。`;
+        if (now < dayStartMs(now)) return `等待 ${state.workStart} 自动开始。`;
+        const breakStart = timeMinutes(state.breakStart, DEFAULT_WINDOWS[0][1]); const breakEnd = timeMinutes(state.breakEnd, DEFAULT_WINDOWS[1][0]);
+        const breakStartMs = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(breakStart / 60), breakStart % 60).getTime(); const breakEndMs = new Date(d.getFullYear(), d.getMonth(), d.getDate(), Math.floor(breakEnd / 60), breakEnd % 60).getTime();
+        if (now < breakStartMs) return `上午计时中，${state.breakStart} 自动进入休息。`;
+        if (now < breakEndMs) return `休息中，${state.breakEnd} 自动继续。`;
+        if (now < dayEndMs(now)) return `下午计时中，${state.workEnd} 自动结束。`;
+        return `今天已自动结算，明天 ${state.workStart} 继续。`;
+      }
+      function render() {
+        rollToToday(); autoStartIfNeeded(); autoFinishIfNeeded();
+        const elapsed = elapsedMs(); const rate = ratePerSecond(); const symbol = state.settledCurrency || state.currency || '¥'; const earned = state.status === 'done' && Number.isFinite(state.settledAmount) ? state.settledAmount : elapsed / 1000 * rate;
+        const workdays = monthWorkdays(state.monthKey); const salary = salaryValue(); const bounds = monthBounds(state.monthKey); const monthHasTime = bounds.start <= Date.now() && bounds.end > Date.now(); const dailyMinutes = scheduleWindows().reduce((sum, [start, end]) => sum + end - start, 0);
+        const statusText = scheduleStatus(); const earningNow = state.status === 'running' && !statusText.startsWith('休息') && !statusText.startsWith('等待') && !statusText.startsWith('今天已');
+        els.timer.innerHTML = formatTime(elapsed); els.earned.innerHTML = `<span class="currency">${symbol}</span>${formatMoney(earned)}`; els.earned.classList.toggle('is-ticking', earningNow); els.earnPerSecond.textContent = `${symbol}${formatMoney(rate, 4)}`; els.earnLiveText.textContent = state.status === 'done' ? '今日收入已结算' : state.status === 'paused' ? '今日已暂停' : statusText.startsWith('休息') ? '休息中暂停增加' : earningNow ? '收入正在增加' : '等待开始'; els.perSecond.innerHTML = `${symbol}${formatMoney(rate, 4)} <small>/ 秒</small>`; els.monthlySummary.textContent = salary > 0 ? `${symbol}${formatMoney(salary)}` : '未设置'; els.selectedMonthLabel.textContent = monthLabel(state.monthKey); els.scheduleSummary.textContent = `${workdays} 天 · ${Math.floor(dailyMinutes / 60)}h${dailyMinutes % 60 ? ` ${dailyMinutes % 60}m` : ''}/天`; els.workScheduleSummary.textContent = `${state.workStart}–${state.breakStart}　${state.breakEnd}–${state.workEnd}`; els.workdayCount.innerHTML = `${workdays} <small>天</small>`;
+        els.statePill.textContent = !state.profileComplete ? '等待设置' : state.status === 'running' ? (scheduleStatus().startsWith('休息') ? '休息中' : '自动计时中') : state.status === 'done' ? '今日已结算' : state.status === 'paused' ? '今日已暂停' : '准备开始'; els.statePill.className = `session-state ${state.status}`;
+        els.mainAction.textContent = !state.profileComplete ? '先完成设置' : state.status === 'running' ? '暂停今天' : (state.status === 'paused' ? '继续今天' : (state.status === 'done' ? '今日已结算' : '开始今天'));
+        els.mainAction.disabled = !state.profileComplete || (state.status === 'idle' && (salary <= 0 || !monthHasTime || !isWorkday(new Date()))) || state.status === 'done'; els.finishAction.disabled = !['running', 'paused'].includes(state.status); els.resetAction.disabled = state.status === 'idle' && elapsed === 0; els.openSettings.disabled = false; els.pendingSettingsNote.hidden = !state.pendingSettings;
+        els.liveRegion.textContent = state.pendingSettings ? '规则已保存，将在下一个工作日生效；今天的计费继续使用当前规则。' : !state.profileComplete ? '先打开设置，输入你的工资和工作时间。' : state.status === 'running' ? scheduleStatus() : state.status === 'paused' ? state.notice || '今天已暂停，点击继续后恢复。' : state.status === 'done' ? `今日已结算，共计 ${formatPlainTime(elapsed)}，${symbol}${formatMoney(earned)}。` : salary <= 0 ? '打开设置，输入月薪后开始。' : scheduleStatus();
+        renderHistory();
+      }
+      function renderHistory() { if (!state.history.length) { els.historyList.innerHTML = '<div class="history-empty">还没有结算记录。<br>每天结束后会自动记录当天金额。</div>'; return; } els.historyList.innerHTML = state.history.map(item => `<div class="history-item"><div class="history-main"><div class="history-amount">${item.currency}${formatMoney(item.amount)}</div><div class="history-date">${item.month || ''} · ${item.date}</div></div><div class="history-time">${item.duration}</div></div>`).join(''); }
+      function start() { if (!state.profileComplete || state.status === 'done') return; const now = Date.now(); const bounds = monthBounds(state.monthKey); if (bounds.start > now || bounds.end <= now || !isWorkday(new Date(now))) { render(); return; } state.startedAt = now; state.status = 'running'; state.autoPaused = false; state.pausedDate = null; state.notice = ''; saveState(); render(); }
+      function pause() { if (state.status !== 'running') return; state.accumulatedMs = elapsedMs(); state.startedAt = null; state.status = 'paused'; state.autoPaused = true; state.pausedDate = state.sessionDate; state.notice = '今天已暂停，点击继续后恢复。'; saveState(); render(); }
+      function finish() { if (!['running', 'paused'].includes(state.status)) return; settleDay(`今天已结算，明天 ${state.workStart} 自动开始。`); render(); }
+      function reset() { if (elapsedMs() > 0 && !window.confirm('确定要重置今天的计费吗？今天未结算的时间不会保存。')) return; state.status = 'idle'; state.accumulatedMs = 0; state.startedAt = null; state.settledAmount = null; state.settledCurrency = null; state.autoPaused = false; state.dayRecorded = false; state.pausedDate = null; state.finishedDate = null; state.notice = ''; saveState(); render(); }
+      function selectedWorkdays() { return [...els.weekdayPicker.querySelectorAll('input:checked')].map((input) => Number(input.value)); }
+      function updateSchedulePreview() { const salary = Number.parseFloat(els.monthlySalary.value) || 0; const start = timeMinutes(els.workStart.value, 600); const end = timeMinutes(els.workEnd.value, 1080); const breakStart = timeMinutes(els.breakStart.value, 720); const breakEnd = timeMinutes(els.breakEnd.value, 810); const minutes = Math.max(0, breakStart - start) + Math.max(0, end - breakEnd); const days = selectedWorkdays(); const plannedSeconds = monthWorkdaysFor(els.monthKey.value || state.monthKey, days) * minutes * 60; const rate = plannedSeconds > 0 ? salary / plannedSeconds : 0; const symbol = els.currency.value || '¥'; els.schedulePreview.querySelector('.schedule-card-copy').textContent = minutes > 0 && days.length ? `每天可计费 ${Math.floor(minutes / 60)} 小时${minutes % 60 ? ` ${minutes % 60} 分钟` : ''} · 每秒 ${symbol}${formatMoney(rate, 4)} · 已选 ${days.length} 天` : '请填写有效的工作时间并至少选择一个工作日。'; }
+      function syncDialog() { const locked = state.status === 'running' || state.status === 'paused'; const source = state.pendingSettings || state; els.monthlySalary.value = source.monthlySalary; els.monthKey.value = source.monthKey; els.currency.value = source.currency; els.dialogCurrencyPrefix.textContent = source.currency; els.workStart.value = source.workStart; els.workEnd.value = source.workEnd; els.breakStart.value = source.breakStart; els.breakEnd.value = source.breakEnd; els.autoStart.checked = source.autoStart; els.weekdayPicker.querySelectorAll('input').forEach((input) => { input.checked = source.workdays.includes(Number(input.value)); }); els.dialogSubtitle.textContent = state.profileComplete ? (locked ? '计费进行中也可以修改规则，新规则将在下一个工作日生效。' : '修改规则后，保存即可开始新的计费周期。') : '先告诉我你的收入和上班方式，保存后才会开始计费。'; [els.monthlySalary, els.monthKey, els.currency, els.workStart, els.workEnd, els.breakStart, els.breakEnd, els.autoStart, els.saveSettings].forEach((el) => { el.disabled = false; }); els.weekdayPicker.querySelectorAll('input').forEach((el) => { el.disabled = false; }); els.dialogLockNote.hidden = !locked; updateSchedulePreview(); }
+      function showSettingsDialog() { syncDialog(); if (typeof els.monthlyDialog.showModal === 'function') els.monthlyDialog.showModal(); else els.monthlyDialog.setAttribute('open', ''); }
+      function closeSettingsDialog() { if (typeof els.monthlyDialog.close === 'function') els.monthlyDialog.close(); else els.monthlyDialog.removeAttribute('open'); }
+      els.openSettings.addEventListener('click', showSettingsDialog); els.closeSettings.addEventListener('click', closeSettingsDialog); els.cancelSettings.addEventListener('click', closeSettingsDialog); els.currency.addEventListener('change', () => { els.dialogCurrencyPrefix.textContent = els.currency.value; updateSchedulePreview(); }); [els.monthlySalary, els.monthKey, els.workStart, els.workEnd, els.breakStart, els.breakEnd].forEach((el) => el.addEventListener('input', updateSchedulePreview)); els.weekdayPicker.addEventListener('change', updateSchedulePreview);
+      els.saveSettings.addEventListener('click', () => { const salary = Number.parseFloat(els.monthlySalary.value); const key = els.monthKey.value; const days = selectedWorkdays(); const start = timeMinutes(els.workStart.value, -1); const end = timeMinutes(els.workEnd.value, -1); const breakStart = timeMinutes(els.breakStart.value, -1); const breakEnd = timeMinutes(els.breakEnd.value, -1); if (!Number.isFinite(salary) || salary <= 0) { window.alert('请输入大于 0 的月薪。'); return; } if (!parseMonth(key)) { window.alert('请选择有效的结算月份。'); return; } if (!days.length) { window.alert('至少选择一个工作日。'); return; } if (start < 0 || end <= start || breakStart < start || breakEnd <= breakStart || breakEnd >= end) { window.alert('请检查上下班和午休时间，时间顺序需要正确。'); return; } const settings = settingsFromDialog(); if (state.status === 'running' || state.status === 'paused') { state.pendingSettings = settings; state.notice = '规则已保存，将在下一个工作日生效；今天的计费继续使用当前规则。'; saveState(); closeSettingsDialog(); render(); return; } applySettings(settings); state.pendingSettings = null; state.status = 'idle'; state.accumulatedMs = 0; state.startedAt = null; state.settledAmount = null; state.settledCurrency = null; state.autoPaused = false; state.dayRecorded = false; state.notice = ''; saveState(); closeSettingsDialog(); start(); render(); });
+      els.popupAction.addEventListener('click', () => { const popup = window.open(`${window.location.href.split('?')[0]}?popup=1`, 'second-pay-popup', 'popup=yes,width=430,height=820,resizable=yes'); if (!popup) els.liveRegion.textContent = '弹窗被浏览器拦截，请允许此页面打开弹窗。'; });
+      els.mainAction.addEventListener('click', () => state.status === 'running' ? pause() : start()); els.finishAction.addEventListener('click', finish); els.resetAction.addEventListener('click', reset); els.clearHistory.addEventListener('click', () => { if (!state.history.length || window.confirm('确定要清空全部结算记录吗？')) { state.history = []; saveState(); render(); } });
+      document.addEventListener('visibilitychange', () => { saveState(); render(); }); window.addEventListener('beforeunload', saveState);
+      render(); if (!state.profileComplete) window.setTimeout(showSettingsDialog, 0); ticker = window.setInterval(render, 1000);
+    })();
+  </script>
+</body>
+</html>
+
