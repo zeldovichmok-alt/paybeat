@@ -23,10 +23,15 @@ $desktopRoot = Join-Path $appRoot 'desktop'
 New-Item -ItemType Directory -Path $desktopRoot -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $projectRoot 'index.html') -Destination (Join-Path $appRoot 'index.html')
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'package.json') -Destination (Join-Path $appRoot 'package.json')
-foreach ($file in @('main.cjs','preload.cjs','pet.html','pet.css','pet.js','journey.js')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $desktopRoot $file) }
+foreach ($file in @('main.cjs','preload.cjs','pet.html','pet.css','pet.js','journey.js','version.cjs','updates.cjs')) { Copy-Item -LiteralPath (Join-Path $PSScriptRoot $file) -Destination (Join-Path $desktopRoot $file) }
 $assetRoot = Join-Path $desktopRoot 'assets'
 New-Item -ItemType Directory -Path $assetRoot -Force | Out-Null
 Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'assets') -File | Copy-Item -Destination $assetRoot -Force
+# These two previous review atlases are never loaded by the application.
+foreach ($obsolete in @('motion-c-previous.png','motion-c-v2.png')) {
+    $obsoletePath = Join-Path $assetRoot $obsolete
+    if (Test-Path -LiteralPath $obsoletePath) { Remove-Item -LiteralPath $obsoletePath }
+}
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'README.md') -Destination (Join-Path $outputRoot '使用说明.md')
 $launcher = Join-Path $projectRoot '打开 PayBeat.exe'
 $compiler = Join-Path $env:WINDIR 'Microsoft.NET/Framework64/v4.0.30319/csc.exe'

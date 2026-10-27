@@ -5,6 +5,7 @@ const path = require('node:path');
 const playwrightPath = process.env.PAYBEAT_PLAYWRIGHT || 'C:/Users/HHH/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright';
 const { _electron } = require(playwrightPath);
 const { expect } = require(path.join(playwrightPath, 'test'));
+const { compareVersions } = require(path.resolve(__dirname, '..', '桌面桌宠', 'version.cjs'));
 const executablePath = path.resolve(__dirname, '..', '本地桌宠', 'PayBeat.exe');
 const output = path.resolve(__dirname, '..', '预览图', 'V2-桌宠');
 const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'paybeat-desktop-test-'));
@@ -44,14 +45,36 @@ const coins = () => pet.locator('#companion').getAttribute('data-coins').then(va
 (async () => {
   fs.mkdirSync(output, { recursive: true });
   try {
+    assert.ok(compareVersions('v2.2.0', 'v2.1.0') > 0);
+    assert.ok(compareVersions('2.2.0', '2.2.0') === 0);
+    assert.ok(compareVersions('2.1.9', '2.2.0') < 0);
     await launch();
     await test('native app starts fresh; pet is transparent, frameless and always on top', async () => {
+      assert.equal(await app.evaluate(({app})=>app.getVersion()),'2.2.0');
       assert.equal(await tool.locator('#monthlySalary').inputValue(), '');
       const flags = await app.evaluate(({ BrowserWindow }) => { const window = BrowserWindow.getAllWindows().find(w => w.webContents.getURL().endsWith('/pet.html')); const preferences = window.webContents.getLastWebPreferences(); return { top: window.isAlwaysOnTop(), bounds: window.getBounds(), contextIsolation: preferences.contextIsolation, nodeIntegration: preferences.nodeIntegration }; });
       assert.equal(flags.top, true); assert.equal(flags.bounds.width, 280); assert.equal(flags.bounds.height, 180); assert.equal(flags.contextIsolation, true); assert.equal(flags.nodeIntegration, false);
       assert.equal(await pet.locator('.toolbar,.hint,#open,#work,#skin,#quiet,#hide').count(),0);
       const items=await openMenu();
       assert.ok(items.some(item=>item.label==='打开工资工具'));
+      assert.ok(items.some(item=>item.label==='检查更新'));
+      await app.evaluate(({dialog,shell})=>{
+        global.updateDialog=null;global.updateLinks=[];
+        dialog.showMessageBox=async(_window,options)=>{global.updateDialog=options;return {response:0};};
+        shell.openExternal=async url=>global.updateLinks.push(url);
+        const https=process.getBuiltinModule('node:https'),{EventEmitter}=process.getBuiltinModule('node:events');
+        global.restoreUpdateGet=https.get;
+        https.get=(_url,_options,callback)=>{
+          const request=new EventEmitter();request.destroy=()=>{};
+          process.nextTick(()=>{const response=new EventEmitter();response.statusCode=200;response.setEncoding=()=>{};callback(response);
+            response.emit('data',JSON.stringify({tag_name:'v2.3.1',body:'测试更新说明',html_url:'https://example.com/untrusted'}));response.emit('end');});
+          return request;
+        };
+      });
+      await menuAction('检查更新');
+      await expect.poll(()=>app.evaluate(()=>global.updateDialog?.title)).toBe('发现 PayBeat 新版本');
+      await expect.poll(()=>app.evaluate(()=>global.updateLinks)).toEqual(['https://github.com/zeldovichmok-alt/paybeat/releases/tag/v2.3.1']);
+      await app.evaluate(()=>{process.getBuiltinModule('node:https').get=global.restoreUpdateGet;});
       assert.equal(items.find(item=>item.label==='休息 · 带薪摸鱼').enabled,false);
       assert.equal(items.find(item=>item.label==='换装').children.find(item=>item.label.startsWith('C')).checked,true);
       assert.ok((await openMenu(true)).some(item=>item.label==='退出 PayBeat'));
@@ -124,7 +147,7 @@ const coins = () => pet.locator('#companion').getAttribute('data-coins').then(va
       await pet.screenshot({ path: path.join(output, 'desktop-pet-resting.png'), omitBackground: true });
       await menuAction('继续工作'); await expect.poll(() => pet.locator('body').getAttribute('data-mode')).toBe('working');
       await expect.poll(coins).toBeGreaterThan(before);
-      assert.ok(await tool.evaluate(() => JSON.parse(localStorage.getItem('paybeat-local-state-v8:' + encodeURIComponent(location.pathname))).normalRatePerSecond) > 1);
+      assert.ok(await tool.evaluate(() => JSON.parse(localStorage.getItem(window.paybeatDesktop.storageKey)).normalRatePerSecond) > 1);
     });
     await test('quiet and hide controls work; tool can restore companion', async () => {
       await menuAction('安静模式'); await expect(pet.locator('body')).toHaveClass(/quiet/);

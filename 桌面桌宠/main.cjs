@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, powerMonitor } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, Tray, nativeImage, screen, powerMonitor, shell, dialog } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { JourneyTracker } = require('./journey.js');
+const { createUpdateChecker } = require('./updates.cjs');
 const PET_WIDTH = 280, PET_HEIGHT = 180;
 
 const testProfile = process.env.PAYBEAT_TEST_PROFILE;
@@ -33,6 +34,11 @@ else {
     const { x, y } = pet.getBounds();
     fs.writeFileSync(prefsFile, JSON.stringify({ x, y, quiet, skin }));
   }
+  const checkForUpdates = createUpdateChecker({
+    currentVersion: app.getVersion(),
+    showMessage: options => dialog.showMessageBox(pet && !pet.isDestroyed() ? pet : tool, options),
+    openExternal: url => shell.openExternal(url)
+  });
   function menu() {
     return Menu.buildFromTemplate([
       { label: '打开工资工具', click: showTool },
@@ -40,6 +46,7 @@ else {
       { label: latest?.resting ? '继续工作' : '休息 · 带薪摸鱼', enabled: Boolean(latest?.canToggleWork && Date.now() - lastSample <= 3000), click: () => sendAction('toggle-work') },
       { label: '换装', submenu: [['C','月白猫帽'],['A','薄荷旅人'],['B','樱桃快跑']].map(([id,name]) => ({label: id+' · '+name, type:'radio', checked:skin===id, click:()=>setSkin(id)})) },
       { label: '安静模式', type: 'checkbox', checked: quiet, click: item => { quiet = item.checked; transmit(); savePrefs(); } },
+      { label: '检查更新', click: () => checkForUpdates() },
       { label: '隐藏桌宠', click: hidePet },
       { type: 'separator' },
       { label: '退出 PayBeat', click: () => app.quit() }
@@ -93,7 +100,7 @@ else {
     tool = new BrowserWindow({ title: 'PayBeat · 工资工具', width: 1280, height: 900, minWidth: 390, minHeight: 700, show: false, autoHideMenuBar: true, backgroundColor: '#e9e8e3', webPreferences });
     pet = new BrowserWindow({ title: 'PayBeat · 桌面金币伙伴', ...position, width: PET_WIDTH, height: PET_HEIGHT, frame: false, transparent: true, backgroundColor: '#00000000', resizable: false, maximizable: false, minimizable: false, alwaysOnTop: true, skipTaskbar: true, hasShadow: false, show: false, webPreferences });
     lockWindow(tool, toolFile); lockWindow(pet, petFile);
-    // This app is entirely local, including fonts and animations.
+    // Renderers stay offline. Only a manual update check uses the main-process HTTPS client.
     tool.webContents.session.webRequest.onBeforeRequest((details, callback) => callback({ cancel: /^https?:/i.test(details.url) }));
     tool.on('close', event => { if (!quitting) { event.preventDefault(); tool.hide(); } });
     pet.on('close', event => { if (!quitting) { event.preventDefault(); hidePet(); } });

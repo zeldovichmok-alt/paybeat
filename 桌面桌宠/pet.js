@@ -6,14 +6,18 @@ const motionPose=$('motionPose'), motionSprite=$('motionSprite');
 const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
 const skins={C:'月白猫帽',A:'薄荷旅人',B:'樱桃快跑'};
 const COIN_START=214, COIN_Y=81;
+const WALK_DISTANCE=14*.78; // Six 130 ms poses at the normal road speed.
+const BITE={approach:120,swallow:180,puff:160,settle:120};
+const BITE_DURATION=BITE.approach+BITE.swallow+BITE.puff+BITE.settle;
+const rewardPriority={small:1,big:2,flag:3};
 // Source rectangles keep every pose on one ground baseline without editing the artwork.
 const motionArt={
   C:{scale:.132,mouth:[40,35],walk:[0,1,2,3,4,5],open:6,puff:7,rects:[[64,17,313,435],[507,17,312,435],[947,19,311,433],[1386,18,315,434],[65,464,316,417],[507,464,312,417],[947,464,320,417],[1386,463,320,418]]},
-  A:{scale:.137,mouth:[41,32],walk:[0,1,2,3,4,5],open:6,puff:7,rects:[[68,4,323,435],[526,6,304,433],[942,1,304,438],[1375,4,331,435],[69,443,310,436],[515,444,314,435],[952,444,313,435],[1392,444,314,435]]},
-  B:{scale:.140,mouth:[44,30],walk:[0,1,2,3,4,5],open:6,puff:7,rects:[[106,11,345,425],[532,12,340,424],[938,9,346,427],[1364,10,343,426],[106,447,340,429],[534,445,340,430],[933,453,339,426],[1371,455,344,424]]}
+  A:{scale:.137,mouth:[41,32],walk:[0,1,2,3,4,5],open:6,puff:7,rects:[[76,11,339,430],[524,11,325,430],[951,11,335,430],[1393,11,332,432],[71,450,329,428],[523,447,333,431],[949,456,333,422],[1393,447,334,431]]},
+  B:{scale:.140,mouth:[44,30],walk:[0,1,2,3,4,5],open:6,puff:7,rects:[[112,13,353,432],[550,13,350,432],[970,13,352,432],[1401,13,350,432],[104,455,348,415],[537,455,350,414],[959,455,352,418],[1388,455,352,418]]}
 };
 let latest=null, anchor=null, distance=0, lastReceived=0, lastReward=0, tileStart=null, rewards=0;
-let currentSkin=null, lastFrame=null, bite=null, gesture=null, lastEncounter=null, lastEncounterAt=-Infinity, frozen=false;
+let currentSkin=null, lastFrame=null, bite=null, pendingReward=null, gesture=null, lastEncounter=null, lastEncounterAt=-Infinity, frozen=false;
 let targetX=COIN_START, targetScale=1, targetOpacity=1;
 let targetY=COIN_Y, revealAt=-Infinity, lastPaint=0;
 const actor={x:0,y:0,sx:1,sy:1};
@@ -25,9 +29,21 @@ const captions=['继续向前，每一步都算数','小路还长，收获在前
 
 function motionOff(){return latest?.quiet||reducedMotion.matches||latest?.stale;}
 function clearEffects(){
-  bite=null;gesture=null;
+  bite=null;pendingReward=null;gesture=null;
   companion.classList.remove('collecting','celebrating','reward-small','reward-big','reward-flag','hello','encounter','hopping');
   $('butterfly').classList.remove('flying');
+}
+function startBite(kind,now){
+  // Complete each mouthful. A bounded pending reward prevents fast income from
+  // restarting the mouth every frame or building a historical animation backlog.
+  gesture=null;
+  companion.classList.remove('hello','encounter','hopping');
+  $('butterfly').classList.remove('flying');
+  bite={kind,start:now,from:Math.max(mouth().x,targetX),fromY:targetY,duration:kind==='flag'?1000:kind==='big'?700:BITE_DURATION};
+  companion.classList.remove('reward-small','reward-big','reward-flag');
+  companion.classList.add('collecting','reward-'+kind);
+  companion.classList.toggle('celebrating',kind!=='small');
+  $('combo').textContent=kind==='flag'?'新里程碑！':kind==='big'?'大金币入袋！':'又一枚！';
 }
 function interact(kind,now=performance.now()){
   if(motionOff())return;
@@ -86,11 +102,9 @@ function render(state){
       if(active&&!motionOff()){
         // Finish the approaching coin at the mouth, then replace it with the next coin.
         // Reward eligibility always comes from the ledger, never this animation.
-        bite={kind:reward.kind,start:now,from:Math.max(mouth().x,targetX),fromY:targetY,duration:reward.kind==='flag'?1000:reward.kind==='big'?680:540};
-        companion.classList.remove('reward-small','reward-big','reward-flag');
-        companion.classList.add('collecting','reward-'+reward.kind);
-        companion.classList.toggle('celebrating',reward.kind!=='small');
-        $('combo').textContent=reward.kind==='flag'?'新里程碑！':reward.kind==='big'?'大金币入袋！':'又一枚！';
+        if(bite||pendingReward){
+          if(!pendingReward||rewardPriority[reward.kind]>rewardPriority[pendingReward])pendingReward=reward.kind;
+        }else startBite(reward.kind,now);
       }
     }
   }
@@ -115,7 +129,7 @@ function drawRoute(now,active){
   }
   landscape.style.transform='translateX('+(-(distance-start*48))+'px)';
   companion.dataset.distance=distance.toFixed(2);
-  if(active&&!bite&&!gesture&&now-lastEncounterAt>4500){
+  if(active&&!bite&&!pendingReward&&!gesture&&now-lastEncounterAt>4500){
     for(const tile of landscape.children){
       const world=Number(tile.dataset.world),x=world*48+24-distance;
       if(x>=82&&x<=104&&lastEncounter!==world){
@@ -143,20 +157,21 @@ function setFrame(frame,moving=false){
   }
 }
 function drawActor(now,active,dt){
-  const phase=(distance/16)%1,cycle=phase*Math.PI*2;
+  const phase=(distance/WALK_DISTANCE)%1,cycle=phase*Math.PI*2;
   const progress=coinProgress(now,active);
-  const anticipating=active&&anchor?.targetKind!=='flag'&&progress>.78&&(1-progress)/Math.max(.001,anchor?.coinSpeed||0)<.32;
+  const untilCoin=(1-progress)/Math.max(.001,anchor?.coinSpeed||0);
+  const anticipating=active&&anchor?.targetKind!=='flag'&&progress>.78&&untilCoin<.18;
   let frame=0,moving=false,dx=0,dy=0,sx=1,sy=1,action='idle';
   if(bite){
-    const t=(now-bite.start)/bite.duration*540;
+    const t=(now-bite.start)/bite.duration*BITE_DURATION;
     if(bite.kind==='flag'){frame=3;dy=-Math.sin(clamp((now-bite.start)/600)*Math.PI)*5;action='celebrate';}
     else{
       moving=true;
-      if(t<280){frame=6;action=t<100?'open':'swallow';dx=1.8*Math.sin(clamp(t/360)*Math.PI);sx=1.025;sy=.985;}
-      else if(t<430){frame=7;action='puff';const puff=Math.sin((t-280)/150*Math.PI);sx=1+.045*puff;sy=1-.025*puff;dy=-.6*puff;}
-      else{frame=Math.floor(phase*6);action='settle';dy=-Math.sin((t-430)/110*Math.PI)*.8;}
+      if(t<BITE.approach+BITE.swallow){frame=6;action=t<BITE.approach?'open':'swallow';const lean=Math.sin(clamp(t/360)*Math.PI);dx=1.8*lean;sx=1+.025*lean;sy=1-.015*lean;}
+      else if(t<BITE_DURATION-BITE.settle){frame=7;action='puff';const puff=Math.sin((t-BITE.approach-BITE.swallow)/BITE.puff*Math.PI);sx=1+.045*puff;sy=1-.025*puff;dy=-.6*puff;}
+      else{frame=Math.floor(phase*6);action='settle';const blend=smooth((t-(BITE_DURATION-BITE.settle))/BITE.settle);dy=-.65*(1-Math.cos(cycle*2))*blend;dx=.3*Math.sin(cycle)*blend;}
     }
-  }else if(anticipating){moving=true;frame=6;action='anticipate';}
+  }else if(anticipating){moving=true;frame=6;action='anticipate';const lean=smooth(1-untilCoin/.18);dx=.7*lean;sx=1+.012*lean;sy=1-.008*lean;}
   else if(gesture){
     frame=gesture.kind==='hop'?Math.floor(phase*6):5;moving=gesture.kind==='hop';action=gesture.kind;
     if(gesture.kind==='hop')dy=-Math.sin(Math.min(1,(now-gesture.start)/650)*Math.PI)*8;
@@ -180,16 +195,16 @@ function drawCoin(now,active){
   targetScale=1;targetOpacity=smooth((now-revealAt)/150);targetY=COIN_Y;
   if(bite){
     kind=bite.kind;
-    const t=(now-bite.start)/bite.duration*540;
+    const t=(now-bite.start)/bite.duration*BITE_DURATION;
     if(kind==='flag'){
       targetX=point.x;targetOpacity=0;
-    }else if(t<100){
-      const approach=smooth(t/100);
+    }else if(t<BITE.approach){
+      const approach=smooth(t/BITE.approach);
       targetX=bite.from+(point.x-bite.from)*approach;
-      targetY=bite.fromY+(point.y-bite.fromY)*approach;
+      targetY=bite.fromY+(point.y-bite.fromY)*approach-2*Math.sin(approach*Math.PI);
       targetScale=1-.4*approach;
     }else{
-      const swallow=smooth((t-100)/180);
+      const swallow=smooth((t-BITE.approach)/BITE.swallow);
       targetX=point.x;targetY=point.y;
       targetScale=.6-.56*swallow;targetOpacity=1-smooth((swallow-.65)/.35);
     }
@@ -212,6 +227,7 @@ function animate(now){
   if(bite&&now-bite.start>=bite.duration){
     bite=null;revealAt=now;companion.classList.remove('collecting','celebrating','reward-small','reward-big','reward-flag');
   }
+  if(!bite&&pendingReward&&active&&now-revealAt>=120){const kind=pendingReward;pendingReward=null;startBite(kind,now);}
   if(gesture&&now>=gesture.end){
     gesture=null;companion.classList.remove('hello','encounter','hopping');$('butterfly').classList.remove('flying');updateStatus(now);
   }

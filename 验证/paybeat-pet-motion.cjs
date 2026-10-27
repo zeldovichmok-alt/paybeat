@@ -44,6 +44,18 @@ const errors=[];
       await page.clock.runFor(400);
       assert.equal(await page.locator('#companion').getAttribute('data-coins'),'1','animation creates no extra rewards');
       assert.ok(await page.locator('#nextReward').evaluate(el=>Number(getComputedStyle(el).opacity))>.9,'next coin smoothly returns');
+      // Rapid real reward notifications must finish the current mouthful and
+      // coalesce into one highest-priority feedback, rather than restart forever.
+      state.journey.reward={id:2,kind:'small'};await send();
+      await page.clock.runFor(80);state.journey.reward={id:3,kind:'big'};await send();
+      await page.clock.runFor(80);state.journey.reward={id:4,kind:'flag'};await send();
+      await page.clock.runFor(80);state.journey.reward={id:5,kind:'small'};await send();
+      await page.clock.runFor(100);
+      assert.equal(await page.locator('#hero').getAttribute('data-action'),'puff','incoming rewards do not restart the current mouthful');
+      await page.clock.runFor(400);
+      assert.equal(await page.locator('#hero').getAttribute('data-action'),'celebrate');
+      assert.ok((await page.locator('#companion').getAttribute('class')).includes('reward-flag'),'the queued flag outranks big and small coins');
+      assert.equal(await page.locator('#companion').getAttribute('data-coins'),'5','coalescing changes animation only, not reward events');
       state.resting=true;state.mode='resting';state.billable=false;await send();await page.clock.runFor(100);
       const road=await page.locator('#landscape').getAttribute('style');
       const reward=await page.locator('#nextReward').getAttribute('style');
@@ -57,7 +69,7 @@ const errors=[];
       await page.emulateMedia({reducedMotion:'no-preference'});state.stale=true;await send();await page.clock.runFor(100);
       assert.equal(await page.locator('#hero').getAttribute('data-action'),'still');
       assert.equal(await page.locator('.toolbar,.hint').count(),0);
-      console.log('PASS '+skin+' walk, anticipation, swallowing, puff, recovery, pause, quiet, reduced motion and stale state');
+      console.log('PASS '+skin+' walk, swallowing, recovery, rapid reward priority, pause, quiet, reduced motion and stale state');
       await context.close();
     }
     assert.deepEqual(errors,[]);console.log('RESULT 3 motion suites passed; 0 browser errors');

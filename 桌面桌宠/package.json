@@ -1,7 +1,7 @@
 {
   "name": "paybeat-desktop",
   "productName": "PayBeat",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "main": "desktop/main.cjs",
   "description": "Local-only PayBeat timer and draggable pixel companion"

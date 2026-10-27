@@ -2,6 +2,7 @@ const assert=require('node:assert/strict');
 const {revealedText}=require('./privacy-helper.cjs');
 const fs=require('node:fs');
 const path=require('node:path');
+const os=require('node:os');
 const {chromium}=require(process.env.PAYBEAT_PLAYWRIGHT||'C:/Users/HHH/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const origin=process.env.PAYBEAT_TEST_URL||'http://localhost:8876';
 const read=p=>p.evaluate(()=>JSON.parse(localStorage.getItem('paybeat-local-state-v8:'+encodeURIComponent(location.pathname))));
@@ -56,6 +57,14 @@ async function test(name,fn){const before=errors.length;await fn();assert.equal(
   await test('next workday rules preserve old money and currency',async()=>{
     const {c,p}=await setup();await p.click('#openSettings');await fields(p,{monthlySalary:1029600,currency:'USD'});await p.click('#saveSettings');assert.equal((await read(p)).currencyCode,'CNY');await p.clock.fastForward(24*3600000);const s=await read(p);assert.equal(s.currencyCode,'USD');assert.equal(s.history[0].currencyCode,'CNY');assert.equal(s.history[0].amount,23400);assert.equal(await amount(p),7200);await c.close();
   });
+  await test('salary settings choose immediate or next workday and same-day reload stays live',async()=>{
+    const immediate=await setup('2026-10-22T14:00:00+08:00');
+    assert.equal(await amount(immediate.p),9000);await immediate.p.reload();assert.equal(await amount(immediate.p),9000);assert.equal(await immediate.p.locator('#timer').innerText(),'02:30:00');
+    await immediate.p.click('#openSettings');await fields(immediate.p,{monthlySalary:1029600});await immediate.p.check('input[name="settingsApplyMode"][value="immediate"]');await immediate.p.click('#saveSettings');
+    let s=await read(immediate.p);assert.equal(s.monthlySalary,'1029600');assert.equal(s.pendingSettings,null);assert.ok(Math.abs(Number(s.normalEarnedAmount)-9000)<1e-6);await immediate.p.clock.fastForward(1000);assert.ok(await amount(immediate.p)>9000);await immediate.c.close();
+    const next=await setup('2026-10-22T14:00:00+08:00');await next.p.click('#openSettings');await fields(next.p,{monthlySalary:1029600});await next.p.check('input[name="settingsApplyMode"][value="next-workday"]');await next.p.click('#saveSettings');
+    s=await read(next.p);assert.equal(s.monthlySalary,'514800');assert.equal(s.pendingSettings.settings.monthlySalary,'1029600');assert.equal(await amount(next.p),9000);await next.p.clock.fastForward(24*3600000);s=await read(next.p);assert.equal(s.monthlySalary,'1029600');assert.equal(s.pendingSettings,null);assert.equal(await amount(next.p),18000);await next.c.close();
+  });
   await test('Shanghai preset overrides fixed fields and computes deductions only when enabled',async()=>{
     const {c,p}=await setup(undefined,{monthlySalary:10000});await p.click('#resetAction');await p.click('#openSettings');await fields(p,{'pension-mode':'fixed','pension-employeeFixed':888});await p.locator('.advanced-settings>summary').click();await p.selectOption('#deductionPreset','shanghai-2026');assert.equal(await p.locator('#pension-mode').inputValue(),'rate');assert.equal(await p.locator('#medical-employerRate').inputValue(),'9');assert.equal(await p.locator('#deductionsEnabled').isChecked(),false);await fields(p,{deductionsEnabled:true});await p.click('#saveSettings');const text=await revealedText(p,'#deductionSummary');assert.match(text,/扣款后 CNY ¥8250.00/);assert.match(text,/雇主成本 CNY ¥13270.00/);await c.close();
   });
@@ -76,7 +85,7 @@ async function test(name,fn){const before=errors.length;await fn();assert.equal(
     const other=await browser.newContext();const page=await other.newPage();await page.goto(origin+'/index.html');await page.locator('#monthlyDialog').waitFor({state:'visible'});assert.equal(await page.locator('#monthlySalary').inputValue(),'');await other.close();
   });
   await test('mobile/desktop screenshots and setting dialog overflow',async()=>{
-    const output=path.join(__dirname,'..','预览图','V2');fs.mkdirSync(output,{recursive:true});
+    const output=fs.mkdtempSync(path.join(os.tmpdir(),'paybeat-edge-shots-'));
     for(const route of ['/index.html','/pay-by-second.html'])for(const width of [390,1440]){const {c,p}=await setup(undefined,{monthlySalary:10000},width,route);assert.equal(await p.evaluate(()=>innerWidth),width);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);await p.screenshot({path:path.join(output,path.basename(route,'.html')+'-'+width+'.png'),fullPage:true});await p.click('#openSettings');await p.locator('.advanced-settings>summary').click();assert.equal(await p.evaluate(()=>{const d=document.querySelector('dialog');return d.scrollWidth>d.clientWidth+1;}),false);await c.close();}
   });
   console.log(`RESULT ${passed} edge suites passed; ${errors.length} browser errors`);
