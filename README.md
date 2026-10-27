@@ -47,7 +47,7 @@ node pay-server.js
 - `验证/`：主工具回归和边界验证脚本。
 - `桌面桌宠/`：Windows 桌宠源码、构建脚本和本地使用说明；`本地桌宠/` 为本机生成的 Windows 预览，不提交到 GitHub。
 - `PayBeat-按秒计费工具与原文档.zip`：按秒计费工具、原文档、预览图和验证材料的完整打包文件。
-- `PayBeat-桌面桌宠-Windows.zip`：包含可直接运行的桌宠与双击入口，完整解压后使用。
+- `PayBeat-Windows-v2.1.0.zip`：GitHub Release 中的 Windows 桌宠运行包，完整解压后使用。
 - `SHA256SUMS.txt`：交付文件校验值。
 
 所有社保、公积金和到手金额均为估算，不接入地区政策、实时汇率或云端账号。
