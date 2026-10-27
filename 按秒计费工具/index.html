@@ -76,6 +76,12 @@
     .earn-live { display: inline-flex; align-items: center; gap: 7px; color: var(--accent); font-size: 11px; }
     .earn-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px rgba(184,243,107,.12); }
     .money { margin-top: 12px; font-size: clamp(54px, 8vw, 88px); line-height: .96; letter-spacing: -.08em; font-variant-numeric: tabular-nums; color: var(--accent); text-shadow: 0 0 34px rgba(184,243,107,.16); }
+    .money-reveal { display: block; width: 100%; padding: 0; border: 0; background: transparent; color: var(--accent); text-align: left; cursor: pointer; user-select: none; touch-action: pan-y; -webkit-touch-callout: none; min-height: 1.15em; overflow-wrap: anywhere; }
+    .money-reveal:focus-visible { outline: 3px solid var(--accent); outline-offset: 8px; border-radius: 8px; }
+    .money-reveal.is-hidden { letter-spacing: -.05em; }
+    .money-reveal-hint { margin-top: 9px; color: var(--muted); font-size: 11px; letter-spacing: .04em; }
+    .private-value { user-select: none; }
+    .pet-toggle-global { border: 0; padding: 0; color: inherit; background: transparent; font-size: inherit; text-decoration: underline; text-underline-offset: 3px; }
     .money.is-ticking { animation: money-tick 1s ease-in-out infinite; }
     .money .currency { font-size: .52em; vertical-align: .13em; margin-right: 4px; color: rgba(184,243,107,.72); }
     .earn-ticker { display: flex; align-items: baseline; gap: 8px; margin-top: 13px; color: var(--muted); font-size: 12px; }
@@ -187,13 +193,48 @@
     .history-time { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
     .clear-history { border: 0; padding: 0; color: var(--muted-2); background: transparent; font-size: 11px; }
     .clear-history:hover { color: var(--danger); }
+    .pet-panel { padding: 20px; overflow: hidden; background: var(--panel); }
+    .pet-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pet-title { margin: 0; font-size: 14px; }
+    .pet-toggle, .reveal-secondary { border: 1px solid var(--line); min-height: 44px; padding: 8px 10px; color: var(--text); background: transparent; font-size: 11px; }
+    .reveal-secondary { margin-top: 10px; user-select: none; touch-action: pan-y; -webkit-touch-callout: none; }
+    .pet-stage { position: relative; height: 164px; margin-top: 14px; overflow: hidden; border: 1px solid var(--line); background: #cbdad0; --pet-progress: 0%; }
+    .pet-stage::before { content: ''; position: absolute; top: 28px; left: 22px; width: 30px; height: 8px; background: #f7f6f1; box-shadow: 8px -8px #f7f6f1, 130px 12px #f7f6f1, 138px 4px #f7f6f1; }
+    .pet-stage.is-overtime { background: #293e55; }
+    .pet-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 32px; background: repeating-linear-gradient(90deg,#9c7857 0 16px,#ad8b69 16px 32px); background-position-x: var(--route-offset,0px); transition: background-position-x 1s linear; border-top: 8px solid #6d9060; }
+    .pet-track { position: absolute; left: 16px; right: 52px; bottom: 32px; height: 70px; }
+    .pet-step-block { position: absolute; left: 56%; bottom: 0; width: 20px; height: 12px; background: #6d9060; border-top: 4px solid #a7b887; }
+    .pet-goal-coins { position: absolute; right: 16px; bottom: 40px; width: 18px; height: 22px; border: 3px solid #846417; background: #ffdc65; box-shadow: inset 3px 0 #fff1a8, -25px -12px 0 -2px #ffdc65, -50px 0 0 -2px #ffdc65; }
+    .pet-sprite { position: absolute; left: 24%; bottom: 0; width: 36px; height: 48px; }
+    .pet-sprite.is-walking .pet-character { animation: walk-step .32s steps(2) infinite; }
+    @keyframes walk-step { to { transform: translateY(-2px); } }
+    .pet-coin[data-kind="big"] { width: 24px; height: 30px; }
+    .pet-coin[data-kind="flag"] { width: 4px; height: 35px; border: 0; background:#344943; box-shadow:none; }
+    .pet-coin[data-kind="flag"]::after { content:'';position:absolute;left:4px;top:0;width:24px;height:16px;background:#d7ff00; }
+    .pet-character { width: 36px; height: 48px; display: block; image-rendering: pixelated; transform-origin: bottom; }
+    .pet-sprite.is-resting .pet-character { transform: scaleY(.75); }
+    .pet-sprite.is-paused .pet-character { opacity: .6; }
+    .pet-sprite.is-done .pet-character { transform: translateY(-4px); }
+    .pet-sprite.is-collecting .pet-character { animation: pet-hop .6s steps(4); }
+    .pet-coin { position: absolute; left: calc(var(--pet-progress) + 12px); bottom: 55px; width: 14px; height: 18px; border: 3px solid #846417; background: #ffdc65; box-shadow: inset 3px 0 #fff1a8; opacity: 0; }
+    .pet-coin.is-visible { animation: pet-coin .7s steps(4); }
+    .pet-status { margin-top: 12px; color: var(--text); font-size: 12px; line-height: 1.6; min-height: 38px; }
+    .pet-energy { height: 5px; margin-top: 8px; background: #d1d1c6; }
+    .pet-energy span { display: block; height: 100%; width: 0; background: #405f46; }
+    .pet-caption { margin: 8px 0 0; font-size: 10px; color: var(--muted); }
+    .income-beat { display: flex; align-items: center; gap: 8px; min-height: 24px; margin-top: 14px; font-size: 12px; }
+    .income-spark { display: inline-block; width: 10px; height: 10px; background: currentColor; opacity: .25; }
+    .income-beat.is-pulsing .income-spark { animation: income-pulse .65s ease-out; }
+    @keyframes income-pulse { 0% { transform: scale(.8); opacity: .25; } 35% { transform: scale(1.3); opacity: 1; } 100% { transform: scale(1); opacity: .25; } }
+    @keyframes pet-hop { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+    @keyframes pet-coin { 0% { opacity: 0; transform: translateY(3px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-20px); } }
     .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
     .live-region { min-height: 18px; margin-top: 10px; color: var(--muted); font-size: 12px; }
     /* Compact, discreet desktop popup: keep the classic visual language while
        removing the large product framing around the live counter. */
     body.popup-mode { background: #0d111b; }
     .popup-mode .shell { width: min(100% - 28px, 360px); padding: 14px 0 16px; }
-    .popup-mode .topbar, .popup-mode .intro, .popup-mode .privacy, .popup-mode .settings-summary, .popup-mode .history-panel { display: none; }
+    .popup-mode .topbar, .popup-mode .intro, .popup-mode .privacy, .popup-mode .settings-summary, .popup-mode .history-panel, .popup-mode .pet-panel { display: none; }
     .popup-mode .layout { display: block; }
     .popup-mode .timer-panel { min-height: 0; padding: 18px; border-radius: 16px; box-shadow: 0 12px 35px rgba(0,0,0,.22); }
     .popup-mode .eyebrow { font-size: 10px; letter-spacing: .1em; }
@@ -216,6 +257,8 @@
       .layout { display: flex; flex-direction: column; }
       .timer-panel { width: 100%; min-height: 475px; }
       .side { width: 100%; }
+      .pet-panel { display: none; }
+      .pet-toggle-global { display: none; }
       .controls { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; margin: 0; padding: 14px max(14px, calc((100vw - 620px) / 2)); background: rgba(9,13,24,.9); border-top: 1px solid var(--line); backdrop-filter: blur(16px); }
       .controls .btn { min-height: 50px; }
     }
@@ -339,6 +382,19 @@
       .settings-summary, .history-panel { box-shadow: 4px 4px 0 rgba(17,17,17,.12); }
       .controls { background: rgba(233,232,227,.94); border-top-color: var(--line); }
     }
+    .money-value .currency { font-size: .28em; letter-spacing: 0; }
+    .money-reveal:focus-visible, .reveal-secondary:focus-visible { outline: 3px solid #405f46; outline-offset: 3px; }
+    .pet-toggle-global { min-height: 44px; }
+    .pet-panel { order: -1; }
+    .desktop-app .pet-panel { display: none; }
+    .pet-caption, .money-reveal-hint { line-height: 1.5; }
+    @media (max-width: 430px) { .money { font-size: clamp(30px,10vw,42px); } .earn-heading { flex-wrap: wrap; } }
+    @media (prefers-reduced-motion: reduce) {
+      .money.is-ticking, .income-beat.is-pulsing .income-spark, .pet-sprite.is-collecting .pet-character, .pet-coin.is-visible { animation: none !important; }
+      .pet-sprite, .pet-ground { transition: none; }
+      .pet-sprite.is-walking .pet-character { animation:none; }
+      .pet-coin { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -348,7 +404,7 @@
         <div class="brand-mark" aria-hidden="true">p/</div>
         <div><div class="brand-name">PAYBEAT</div><div class="brand-sub">Every second counts.</div></div>
       </div>
-      <div class="privacy"><span class="privacy-dot" aria-hidden="true"></span>数据只保存在本机</div>
+      <div class="privacy"><span class="privacy-dot" aria-hidden="true"></span>数据只保存在本机 <button class="pet-toggle-global" id="petToggleGlobal" type="button" hidden>隐藏桌宠</button></div>
     </header>
 
     <section class="intro" aria-labelledby="page-title">
@@ -366,14 +422,16 @@
           <div class="timer" id="timer" aria-live="off">00<span>:</span>00<span>:</span>00</div>
           <div class="earn-stage" aria-label="实时收入">
             <div class="earn-heading"><span class="money-label">今日税前收入</span><span class="earn-live" id="earnLiveText">收入正在增加</span></div>
-            <div class="money" id="earned" aria-live="polite"><span class="currency">¥</span>0.00</div>
-            <div class="earn-ticker"><span>每秒增加</span><strong id="earnPerSecond">¥0.0000</strong></div>
+            <button class="money money-reveal is-hidden" id="earned" data-reveal type="button" aria-label="今日收入，按下查看" aria-pressed="false"><span class="money-value" aria-live="off"><span class="currency">CNY ¥</span>••••••</span></button>
+            <div class="money-reveal-hint" id="moneyRevealHint">按下查看，松手隐藏</div>
+            <div class="income-beat" id="incomeBeat" aria-live="off"><span class="income-spark" aria-hidden="true"></span><span id="incomeBeatText">等待今天的收获</span></div>
+            <div class="earn-ticker"><span>每秒增加</span><strong class="private-value" id="earnPerSecond">¥••••</strong></div>
           </div>
           <div class="live-region" id="liveRegion" aria-live="polite">设置月薪后，工作日每天 09:00 自动计时。</div>
         </div>
         <div>
           <div class="timer-meta">
-            <div class="metric"><div class="metric-label">每秒单价</div><div class="metric-value" id="perSecond">¥0.0000 <small>/ 秒</small></div></div>
+            <div class="metric"><div class="metric-label">每秒单价</div><div class="metric-value private-value" id="perSecond">CNY ¥•••• <small>/ 秒</small></div></div>
             <div class="metric"><div class="metric-label">本月工作日</div><div class="metric-value" id="workdayCount">0 <small>天</small></div></div>
           </div>
           <div class="controls">
@@ -394,18 +452,25 @@
       <aside class="side">
         <section class="panel settings-summary" aria-labelledby="settings-title">
           <div class="panel-heading"><h2 class="panel-title" id="settings-title">计薪设置</h2><span class="panel-kicker">PAY RULES</span></div>
-          <div class="summary-line"><div><div class="summary-amount" id="monthlySummary">未设置</div><div class="summary-caption">月薪</div></div><div class="summary-month"><strong id="selectedMonthLabel">—</strong><span id="scheduleSummary">完成设置后显示</span></div></div>
+          <div class="summary-line"><div><div class="summary-amount private-value" id="monthlySummary">未设置</div><div class="summary-caption">月薪</div></div><div class="summary-month"><strong id="selectedMonthLabel">—</strong><span id="scheduleSummary">完成设置后显示</span></div></div>
           <div class="schedule-strip"><span>工作时段</span><strong id="workScheduleSummary">—</strong></div>
           <button class="btn" id="openSettings" type="button">编辑工资规则</button>
           <button class="btn btn-quiet" id="popupAction" type="button">在电脑弹窗打开</button>
           <p class="pending-settings" id="pendingSettingsNote" hidden>新规则将于下个工作日生效。</p>
           <p class="note">每天单独结算，昨天的金额只保存在记录里；休息是否带薪由你设置；休息日可手动开始加班。</p>
-          <p class="deduction-summary" id="deductionSummary">社保、公积金估算未启用</p>
+          <button class="reveal-secondary" data-reveal type="button" aria-pressed="false">按下查看薪资与估算</button>
+          <p class="deduction-summary private-value" id="deductionSummary">社保、公积金估算未启用</p>
         </section>
 
         <section class="panel history-panel" aria-labelledby="history-title">
           <div class="panel-heading"><h2 class="panel-title" id="history-title">最近结算</h2><button class="clear-history" id="clearHistory" type="button">清空记录</button></div>
           <div id="historyList" class="history-list"></div>
+          <button class="reveal-secondary" data-reveal type="button" aria-pressed="false">按下查看结算金额</button>
+        </section>
+        <section class="panel pet-panel" id="petPanel" aria-labelledby="pet-title">
+          <div class="pet-heading"><h2 class="pet-title" id="pet-title">像素桌宠</h2><button class="pet-toggle" id="petToggle" type="button" aria-pressed="false">隐藏桌宠</button></div>
+          <div class="pet-stage" id="petStage" aria-hidden="true"><div class="pet-ground"></div><div class="pet-goal-coins"></div><div class="pet-track"><div class="pet-step-block"></div><div class="pet-sprite" id="petSprite"><svg class="pet-character" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges"><path fill="#263c39" d="M3 0h5v1H2v3h1v3H2v3H1v2h2v2H2v2h4v-2h1v2h4v-2H9v-2h2v-2h-1V7H9V4h1V2H8V1H3Z"/><path fill="#d7ff00" d="M3 1h5v2H2V2h1ZM2 3h8v1H2Z"/><path fill="#f0b88e" d="M3 4h6v3H3ZM1 10h2v2H1Zm8 0h2v2H9Z"/><path fill="#263c39" d="M7 4h1v1H7ZM5 6h3v1H5Z"/><path fill="#f7f6f1" d="M2 7h8v3H2Z"/><path fill="#477976" d="M3 7h1v3h4V7h1v7H7v-2H5v2H3Z"/><path fill="#ffdc65" d="M4 9h1v1H4Zm3 0h1v1H7Z"/></svg></div><span class="pet-coin" id="petCoin"></span></div></div>
+          <div class="pet-status" id="petStatus">等待收入增加</div><div class="pet-energy" aria-hidden="true"><span id="petEnergyBar"></span></div><p class="pet-caption">累计 0.5 小金币 · 20 大金币 · 100 小旗子（当前币种）</p>
         </section>
       </aside>
     </div>
@@ -468,14 +533,24 @@
         monthlySalary: $('monthlySalary'), monthKey: $('monthKey'), currency: $('currency'), dialogCurrencyPrefix: $('dialogCurrencyPrefix'), weekdayPicker: $('weekdayPicker'), workStart: $('workStart'), workEnd: $('workEnd'), breakStart: $('breakStart'), breakEnd: $('breakEnd'), autoStart: $('autoStart'), schedulePreview: $('schedulePreview'), dialogSubtitle: $('dialogSubtitle'),
         monthlySummary: $('monthlySummary'), selectedMonthLabel: $('selectedMonthLabel'), scheduleSummary: $('scheduleSummary'), workScheduleSummary: $('workScheduleSummary'), workdayCount: $('workdayCount'), perSecond: $('perSecond'), pendingSettingsNote: $('pendingSettingsNote'), deductionSummary: $('deductionSummary'),
         lunchPaid: $('lunchPaid'), breakChoice: $('breakChoice'), breakQuota: $('breakQuota'), breakName: $('breakName'), breakPaid: $('breakPaid'), deductionsEnabled: $('deductionsEnabled'), socialBase: $('socialBase'), housingBase: $('housingBase'), socialEmployeeRate: $('socialEmployeeRate'), socialEmployerRate: $('socialEmployerRate'), housingEmployeeRate: $('housingEmployeeRate'), housingEmployerRate: $('housingEmployerRate'), overtimeEnabled: $('overtimeEnabled'), overtimeAutoStart: $('overtimeAutoStart'), weekdayOvertimeMultiplier: $('weekdayOvertimeMultiplier'), restdayOvertimeMultiplier: $('restdayOvertimeMultiplier'), holidayOvertimeMultiplier: $('holidayOvertimeMultiplier'),
-        timer: $('timer'), earned: $('earned'), earnPerSecond: $('earnPerSecond'), earnLiveText: $('earnLiveText'), liveRegion: $('liveRegion'), statePill: $('statePill'), mainAction: $('mainAction'), finishAction: $('finishAction'), resetAction: $('resetAction'), breakAction: $('breakAction'), overtimeAction: $('overtimeAction'), historyList: $('historyList'), clearHistory: $('clearHistory'),
+        timer: $('timer'), earned: $('earned'), moneyValue: $('earned').querySelector('.money-value'), moneyRevealHint: $('moneyRevealHint'), earnPerSecond: $('earnPerSecond'), earnLiveText: $('earnLiveText'), liveRegion: $('liveRegion'), statePill: $('statePill'), mainAction: $('mainAction'), finishAction: $('finishAction'), resetAction: $('resetAction'), breakAction: $('breakAction'), overtimeAction: $('overtimeAction'), historyList: $('historyList'), clearHistory: $('clearHistory'), petPanel: $('petPanel'), petToggle: $('petToggle'), petToggleGlobal: $('petToggleGlobal'), petSprite: $('petSprite'), petCoin: $('petCoin'), petStatus: $('petStatus'), petEnergyBar: $('petEnergyBar'),
         monthlyDialog: $('monthlyDialog'), openSettings: $('openSettings'), popupAction: $('popupAction'), closeSettings: $('closeSettings'), cancelSettings: $('cancelSettings'), saveSettings: $('saveSettings'), dialogLockNote: $('dialogLockNote'), clearDeviceData: $('clearDeviceData')
       };
-      const defaultState = { status: 'idle', monthlySalary: '', monthKey: currentMonthKey(), currency: '¥', currencyCode: 'CNY', workdays: DEFAULT_WORKDAYS.slice(), workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', autoStart: true, lunchPaid: false, breakQuota: '0', breakName: '自定义休息', breakChoice: 'paid_slack', breakPaid: false, specialDates: [], events: [], overtimeWeightedMs: 0, breakUsedMs: 0, breakExcludedMs: 0, breakMode: null, breakStartedAt: null, normalEarnedAmount: 0, normalRatePerSecond: 0, normalSettlementAdjustment: 0, deductionsDetailed: true, deductionItems: [], deductionsEnabled: false, socialBase: '0', housingBase: '0', socialEmployeeRate: '0', socialEmployerRate: '0', housingEmployeeRate: '0', housingEmployerRate: '0', overtimeEnabled: false, overtimeAutoStart: false, weekdayOvertimeMultiplier: '1.5', restdayOvertimeMultiplier: '2', holidayOvertimeMultiplier: '3', overtimeMode: false, overtimeMultiplier: 1, overtimeAccumulatedMs: 0, profileComplete: false, pendingSettings: null, accumulatedMs: 0, startedAt: null, sessionDate: dateKey(), settledAmount: null, settledCurrency: null, history: [], automationVersion: 11, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '' };
+      const defaultState = { status: 'idle', monthlySalary: '', monthKey: currentMonthKey(), currency: '¥', currencyCode: 'CNY', workdays: DEFAULT_WORKDAYS.slice(), workStart: '10:00', workEnd: '18:00', breakStart: '12:00', breakEnd: '13:30', autoStart: true, lunchPaid: false, breakQuota: '0', breakName: '自定义休息', breakChoice: 'paid_slack', breakPaid: false, specialDates: [], events: [], overtimeWeightedMs: 0, breakUsedMs: 0, breakExcludedMs: 0, breakMode: null, breakStartedAt: null, normalEarnedAmount: 0, normalRatePerSecond: 0, normalSettlementAdjustment: 0, deductionsDetailed: true, deductionItems: [], deductionsEnabled: false, socialBase: '0', housingBase: '0', socialEmployeeRate: '0', socialEmployerRate: '0', housingEmployeeRate: '0', housingEmployerRate: '0', overtimeEnabled: false, overtimeAutoStart: false, weekdayOvertimeMultiplier: '1.5', restdayOvertimeMultiplier: '2', holidayOvertimeMultiplier: '3', overtimeMode: false, overtimeMultiplier: 1, overtimeAccumulatedMs: 0, profileComplete: false, pendingSettings: null, accumulatedMs: 0, startedAt: null, sessionDate: dateKey(), settledAmount: null, settledCurrency: null, history: [], automationVersion: 11, autoPaused: false, dayRecorded: false, pausedDate: null, finishedDate: null, notice: '', petEnabled: true };
       try { LEGACY_STORAGE_KEYS.forEach((key) => localStorage.removeItem(key)); } catch {}
       let state = loadState();
       let ticker = null;
       let storageError = false;
+      let privacyReveal = false;
+      let privacyHold = null;
+      let feedbackPrevious = null;
+      let feedbackRemainderMs = 0;
+      let feedbackSeconds = 0;
+      let feedbackDay = null;
+      let feedbackSuspended = false;
+      const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      let feedbackCoinCount = 0;
+      const desktopMedia=window.matchMedia('(min-width: 781px)');
       function midnightAfterSession() { const d=new Date(state.sessionDate+'T00:00:00'); d.setDate(d.getDate()+1); return +d; }
       function baseRatePerSecond() { const total=scheduledMs(state.monthKey); return total>0 ? salaryValue()/(total/1000) : 0; }
       function ratePerSecond() { return baseRatePerSecond(); }
@@ -659,6 +734,38 @@
       function formatTime(ms) { const total = Math.floor(ms / 1000); const h = Math.floor(total / 3600); const m = Math.floor((total % 3600) / 60); const s = total % 60; const pad = (n) => String(n).padStart(2, '0'); return `${pad(h)}<span>:</span>${pad(m)}<span>:</span>${pad(s)}`; }
       function formatPlainTime(ms) { const total = Math.floor(ms / 1000); const h = Math.floor(total / 3600); const m = Math.floor((total % 3600) / 60); const s = total % 60; const pad = (n) => String(n).padStart(2, '0'); return `${pad(h)}:${pad(m)}:${pad(s)}`; }
       function formatMoney(amount, decimals = 2) { return Number(amount || 0).toFixed(decimals); }
+      function maskedMoney(code = state.currencyCode, compact = false) { const info = currencyInfo(code); return code+' '+info.symbol+(compact ? '••••' : (info.decimals ? '••••••' : '••••')); }
+      function displayMoney(amount, code = state.currencyCode, compact = false) { return privacyReveal ? code+' '+currencySymbol(code)+formatMoney(amount,currencyDecimals(code)) : maskedMoney(code,compact); }
+      function setPrivacyReveal(value) {
+        privacyReveal=Boolean(value);
+        document.body.classList.toggle('privacy-revealed',privacyReveal);
+        els.earned.classList.toggle('is-hidden',!privacyReveal);
+        els.earned.setAttribute('aria-label',privacyReveal?'今日收入，松手隐藏':'今日收入，按下查看');
+        document.querySelectorAll('[data-reveal]').forEach(el=>el.setAttribute('aria-pressed',String(privacyReveal)));
+        els.moneyRevealHint.textContent=privacyReveal?'松手即隐藏':'按下查看，松手隐藏';
+        render();
+      }
+      function startPrivacyReveal(event) {
+        if(event.type==='pointerdown'&&(event.button!==0||event.isPrimary===false))return;
+        if(privacyHold)return;
+        event.preventDefault();
+        const pointer=event.type==='pointerdown';
+        // Keep the original hit area: revealing long amounts can reflow nearby text.
+        // A layout-only pointerleave must not cancel a stationary press or a key hold.
+        privacyHold={element:event.currentTarget,bounds:event.currentTarget.getBoundingClientRect(),pointerId:pointer?event.pointerId:null,key:pointer?null:event.key,
+          x:pointer?event.clientX:null,y:pointer?event.clientY:null};
+        if(document.visibilityState==='visible'&&!feedbackSuspended&&!els.monthlyDialog.open)setPrivacyReveal(true);
+      }
+      function stopPrivacyReveal() {
+        privacyHold=null;
+        if(privacyReveal)setPrivacyReveal(false);
+      }
+      function handlePrivacyPointerMove(event) {
+        if(!privacyHold||privacyHold.pointerId!==event.pointerId)return;
+        const rect=privacyHold.bounds;
+        if(Math.hypot(event.clientX-privacyHold.x,event.clientY-privacyHold.y)>12||
+          event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)stopPrivacyReveal();
+      }
       function monthLabel(key) { const bounds = monthBounds(key); return new Intl.DateTimeFormat('zh-CN', {year: 'numeric', month: 'long'}).format(new Date(bounds.start)); }
       function appendHistory(elapsed,amount) { if(!elapsed&&!state.breakUsedMs)return; const p=elapsedPartsAt();const base=baseRatePerSecond();const row={date:state.sessionDate,month:state.monthKey,currencyCode:state.currencyCode,currency:currencySymbol(),amount,duration:formatPlainTime(elapsed),normalMs:p.normalMs,overtimeMs:p.overtimeMs,normalAmount:Number(state.normalEarnedAmount)||0,overtimeAmount:p.weightedMs/1000*base,breakMs:state.breakUsedMs,breakExcludedMs:state.breakExcludedMs,normalSettlementAdjustment:state.normalSettlementAdjustment,configSnapshot:JSON.parse(JSON.stringify({monthlySalary:state.monthlySalary,currencyCode:state.currencyCode,workdays:state.workdays,workStart:state.workStart,workEnd:state.workEnd,breakStart:state.breakStart,breakEnd:state.breakEnd,lunchPaid:state.lunchPaid,breakPaid:state.breakPaid,breakQuota:state.breakQuota,weekdayOvertimeMultiplier:state.weekdayOvertimeMultiplier,restdayOvertimeMultiplier:state.restdayOvertimeMultiplier,holidayOvertimeMultiplier:state.holidayOvertimeMultiplier})),events:JSON.parse(JSON.stringify(state.events)),deductions:deductionEstimate(),deductionItems:JSON.parse(JSON.stringify(state.deductionItems))};state.history=[row,...state.history.filter(item=>item.date!==state.sessionDate)].slice(0,31);state.dayRecorded=true; }
 
@@ -686,21 +793,69 @@
         if (now < dayEndMs(now)) return `下午计时中，${state.workEnd} 自动结束。`;
         return `今天已自动结算，明天 ${state.workStart} 继续。`;
       }
+      // Presentation samples elapsed pay time; it never changes the billing ledger.
+      function renderPet(earningNow, earned, elapsed, now) {
+        const available=state.profileComplete&&!document.body.classList.contains('popup-mode')&&desktopMedia.matches;
+        const enabled=available&&state.petEnabled!==false;
+        els.petPanel.hidden=!enabled;
+        els.petToggleGlobal.hidden=!available;
+        els.petToggleGlobal.textContent=state.petEnabled===false?'显示桌宠':'隐藏桌宠';
+        els.petToggleGlobal.setAttribute('aria-pressed',String(state.petEnabled!==false));
+        els.petToggle.setAttribute('aria-pressed',String(state.petEnabled!==false));
+        const live=earningNow&&earned>=0&&effectiveRatePerSecond()>0&&!feedbackSuspended&&document.visibilityState==='visible'&&!els.monthlyDialog.open;
+        const key=[state.sessionDate,state.currencyCode,state.startedAt,state.status,state.breakMode,state.overtimeMode,state.normalRatePerSecond].join('|');
+        const previous=feedbackPrevious;
+        if(feedbackDay!==state.sessionDate||(previous&&elapsed<previous.elapsed)) {
+          feedbackDay=state.sessionDate;feedbackSeconds=0;feedbackCoinCount=0;feedbackRemainderMs=0;
+        }
+        let tick=false;
+        if(previous&&previous.key===key&&previous.live&&live&&now>=previous.now&&now-previous.now<=1500&&earned>=previous.earned&&elapsed>=previous.elapsed) {
+          if(earned>previous.earned)feedbackRemainderMs+=Math.min(elapsed-previous.elapsed,now-previous.now);
+          const seconds=Math.floor(feedbackRemainderMs/1000);
+          if(seconds>0){feedbackRemainderMs%=1000;feedbackSeconds+=seconds;tick=true;}
+        } else feedbackRemainderMs=0;
+        feedbackPrevious={key,now,elapsed,earned,live};
+        const coinCount=Math.max(0,Math.floor(earned*2+1e-8));
+        const collected=previous&&previous.live&&live&&previous.key===key&&now-previous.now<=1500&&coinCount>Math.floor(previous.earned*2+1e-8);
+        const rewardKind=collected?(Math.floor(coinCount/200)>Math.floor(previous.earned/100)?'flag':Math.floor(coinCount/40)>Math.floor(previous.earned/20)?'big':'small'):null;
+        feedbackCoinCount=coinCount;
+        const mode=state.status==='done'?'done':state.breakMode?'resting':state.status==='paused'?'paused':earningNow?(state.overtimeMode?'overtime':'working'):state.status==='running'?'resting':'idle';
+        els.petPanel.dataset.state=mode;
+        $('petStage').classList.toggle('is-overtime',mode==='overtime');
+        els.petSprite.classList.toggle('is-resting',mode==='resting');
+        els.petSprite.classList.toggle('is-paused',mode==='paused');
+        els.petSprite.classList.toggle('is-done',mode==='done');
+        els.petSprite.classList.toggle('is-walking',live&&!reducedMotion.matches);
+        $('petStage').style.setProperty('--pet-progress','24%');
+        $('petStage').style.setProperty('--route-offset',(-elapsed/1000*14)+'px');
+        els.petEnergyBar.style.width=((feedbackSeconds%5)*20)+'%';
+        const text=mode==='done'?'今天的收获，已装进口袋。':state.breakMode?breakLabel()+'中，回来再继续冒险。':mode==='paused'?'歇一会儿，收获都在。':mode==='resting'?'午休时间，小人也歇一会儿。':mode==='overtime'?'夜路继续 · 加班计费中':mode==='working'?'又赚到一秒，向下一枚金币出发。':'等待今天的第一份收获。';
+        els.petStatus.textContent=text;
+        $('incomeBeatText').textContent=live?'又赚到一秒':mode==='done'?'今天的收获已保存':(mode==='paused'||mode==='resting')?'歇一会儿，收获都在':'等待今天的收获';
+        if(!live){$('incomeBeat').classList.remove('is-pulsing');els.petCoin.classList.remove('is-visible');els.petSprite.classList.remove('is-collecting');}
+        if(tick&&live&&!reducedMotion.matches){$('incomeBeat').classList.remove('is-pulsing');void $('incomeBeat').offsetWidth;$('incomeBeat').classList.add('is-pulsing');}
+        if(collected&&enabled&&live&&!reducedMotion.matches){els.petCoin.dataset.kind=rewardKind;els.petCoin.classList.remove('is-visible');els.petSprite.classList.remove('is-collecting');void els.petCoin.offsetWidth;els.petCoin.classList.add('is-visible');els.petSprite.classList.add('is-collecting');}
+        // Half-unit thresholds and fractional approach progress stay local.
+        window.paybeatDesktop?.publish({ready:state.profileComplete,mode,billable:earningNow&&effectiveRatePerSecond()>0,
+          elapsedMs:elapsed,day:state.sessionDate,currencyCode:state.currencyCode,rewardUnits:coinCount,rewardProgress:Math.max(0,Math.min(.999,earned*2-coinCount)),enabled:state.petEnabled!==false,
+          canToggleWork:Boolean(state.breakMode)||state.status==='paused'||(earningNow&&!state.overtimeMode),
+          resting:Boolean(state.breakMode)||state.status==='paused'});
+      }
       function render() {
         rollToToday();autoStartIfNeeded();autoFinishIfNeeded();
         const now=Date.now(),parts=elapsedPartsAt(now),elapsed=parts.normalMs+parts.overtimeMs;
         const code=state.currencyCode,symbol=currencySymbol(code),decimals=currencyDecimals(code);
-        const fmt=value=>code+' '+symbol+formatMoney(value,decimals);
+        const fmt=value=>displayMoney(value,code);
         const earned=state.status==='done'&&Number.isFinite(state.settledAmount)?state.settledAmount:currentAmount(parts);
         const rate=effectiveRatePerSecond(),salary=salaryValue(),statusText=scheduleStatus();
         const earningNow=state.status==='running'&&!state.breakMode&&(state.overtimeMode||billableMsBetween(now,now+1000,state.monthKey)>0);
         const normalWindow=state.monthKey===currentMonthKey()&&isWorkday(new Date())&&now<dayEndMs();
         const days=monthWorkdays(state.monthKey),minutes=scheduleWindows().reduce((sum,[a,b])=>sum+b-a,0);
         els.timer.innerHTML=formatTime(elapsed);
-        els.earned.innerHTML='<span class="currency">'+symbol+'</span>'+formatMoney(earned,decimals);
-        els.earned.classList.toggle('is-ticking',earningNow);
-        els.earnPerSecond.textContent=symbol+formatMoney(earningNow?rate:0,4);
-        els.perSecond.textContent=code+' '+symbol+formatMoney(rate,4)+' / 秒';
+        els.moneyValue.innerHTML='<span class="currency">'+code+' '+symbol+'</span>'+(privacyReveal?formatMoney(earned,decimals):'••••••');
+        els.earned.classList.remove('is-ticking');
+        els.earnPerSecond.textContent=privacyReveal?symbol+formatMoney(earningNow?rate:0,4):symbol+'••••';
+        els.perSecond.innerHTML=(privacyReveal?code+' '+symbol+formatMoney(rate,4):code+' '+symbol+'••••')+' <small>/ 秒</small>';
         els.earnLiveText.textContent=state.breakMode?breakLabel()+'中 · 薪资暂停':state.status==='done'?'今日收入已结算':state.status==='paused'?'今日已暂停':state.overtimeMode?'加班计费 · '+state.overtimeMultiplier+'×':earningNow?'收入正在增加':statusText.startsWith('休息')?'午休中暂停增加':'等待开始';
         els.monthlySummary.textContent=state.profileComplete?fmt(salary):'未设置';
         els.selectedMonthLabel.textContent=monthLabel(state.monthKey);
@@ -721,15 +876,16 @@
         els.overtimeAction.textContent=state.overtimeMode?'结束加班':'开始加班'+(overtimeAllowed()?' · '+overtimeMultiplierFor()+'×':'');
         els.pendingSettingsNote.hidden=!state.pendingSettings;
         els.pendingSettingsNote.textContent=state.pendingSettings?'新规则将于 '+state.pendingSettings.effectiveDate+' 生效；今天按原规则结算。':'';
-        els.liveRegion.textContent=!state.profileComplete?'先打开设置，输入你的工资和工作时间。':state.breakMode?breakLabel()+'中，薪资暂停。'+(breakIsPaid()?'回来后提高秒薪，保留休息前的预计日薪。':'结束后按原秒薪继续，不补计休息收入。'):state.status==='running'?statusText:state.status==='paused'?state.notice||'今天已暂停，点击继续后恢复。':state.status==='done'?'今日已结算，共计 '+formatPlainTime(elapsed)+'，'+fmt(earned)+'。'+(state.normalSettlementAdjustment>0?'含下班时带薪休息补齐 '+fmt(state.normalSettlementAdjustment)+'。':''):!state.autoStart?'点击开始今天，按自己的规则计时。':statusText;
+        els.liveRegion.textContent=!state.profileComplete?'先打开设置，输入你的工资和工作时间。':state.breakMode?breakLabel()+'中，薪资暂停。'+(breakIsPaid()?'回来后提高秒薪，保留休息前的预计日薪。':'结束后按原秒薪继续，不补计休息收入。'):state.status==='running'?statusText:state.status==='paused'?state.notice||'今天已暂停，点击继续后恢复。':state.status==='done'?'今日已结算，共计 '+formatPlainTime(elapsed)+'。按下查看今日收获。'+(state.normalSettlementAdjustment>0?'含下班时带薪休息补齐。':''):!state.autoStart?'点击开始今天，按自己的规则计时。':statusText;
         if(storageError)els.liveRegion.textContent+=' 本机保存不可用，关闭页面后可能无法保留数据。';
         const deductions=deductionEstimate();
         els.deductionSummary.textContent=state.deductionsEnabled?'月度估算（未扣个税）\n个人社保 '+fmt(deductions.socialEmployee)+' · 雇主社保 '+fmt(deductions.socialEmployer)+'\n个人公积金 '+fmt(deductions.housingEmployee)+' · 雇主公积金 '+fmt(deductions.housingEmployer)+'\n扣款后 '+fmt(deductions.netEstimate)+' · 雇主成本 '+fmt(deductions.employerCost)+'\n仅供估算，实际以工资单和当地政策为准。':'社保、公积金估算未启用';
         const used=state.breakUsedMs+(state.breakMode?Math.max(0,Math.min(now,sessionDayEndMs())-state.breakStartedAt):0),quota=numeric(state.breakQuota);
-        $('todayBreakdown').textContent='正常 '+formatPlainTime(parts.normalMs)+' · '+fmt(normalAmount(parts))+'\n加班 '+formatPlainTime(parts.overtimeMs)+' · '+fmt(parts.weightedMs/1000*baseRatePerSecond())+'\n休息合计 '+formatPlainTime(used)+(quota>0?' / '+quota+' 分钟'+(used>quota*60000?' · 已超出额度':''):'');
+        $('todayBreakdown').classList.add('private-value');$('todayBreakdown').textContent='正常 '+formatPlainTime(parts.normalMs)+' · '+fmt(normalAmount(parts))+'\n加班 '+formatPlainTime(parts.overtimeMs)+' · '+fmt(parts.weightedMs/1000*baseRatePerSecond())+'\n休息合计 '+formatPlainTime(used)+(quota>0?' / '+quota+' 分钟'+(used>quota*60000?' · 已超出额度':''):'');
+        renderPet(earningNow,earned,elapsed,now);
         renderHistory();
       }
-      function renderHistory(){els.historyList.innerHTML=state.history.length?state.history.map(item=>{const code=CURRENCY_META[item.currencyCode]?item.currencyCode:Object.keys(CURRENCY_META).find(code=>CURRENCY_META[code].symbol===item.currency)||'CNY',fmt=value=>code+' '+currencySymbol(code)+formatCurrency(value,code);return '<div class="history-item"><div class="history-main"><div class="history-amount">'+fmt(item.amount)+'</div><div class="history-date">'+escapeHTML(item.date)+(item.normalAmount!==undefined?'<br>正常 '+fmt(item.normalAmount)+' · 加班 '+fmt(item.overtimeAmount)+'<br>休息 '+formatPlainTime(item.breakMs??((item.shortBreakMs||0)+(item.personalBreakMs||0))):'')+'</div></div><div class="history-time">'+escapeHTML(item.duration)+'</div></div>';}).join(''):'<div class="history-empty">还没有结算记录。<br>每天结束后记录当天收入。</div>';}
+      function renderHistory(){els.historyList.innerHTML=state.history.length?state.history.map(item=>{const code=CURRENCY_META[item.currencyCode]?item.currencyCode:Object.keys(CURRENCY_META).find(code=>CURRENCY_META[code].symbol===item.currency)||'CNY',fmt=value=>displayMoney(value,code);return '<div class="history-item"><div class="history-main"><div class="history-amount">'+fmt(item.amount)+'</div><div class="history-date">'+escapeHTML(item.date)+(item.normalAmount!==undefined?'<br>正常 '+fmt(item.normalAmount)+' · 加班 '+fmt(item.overtimeAmount)+'<br>休息 '+formatPlainTime(item.breakMs??((item.shortBreakMs||0)+(item.personalBreakMs||0))):'')+'</div></div><div class="history-time">'+escapeHTML(item.duration)+'</div></div>';}).join(''):'<div class="history-empty">还没有结算记录。<br>每天结束后记录当天收入。</div>';}
       function start() {rollToToday();autoFinishIfNeeded();if(!state.profileComplete){showSettingsDialog();return;}if(state.breakMode){toggleBreak(state.breakMode);return;}if(['done','running'].includes(state.status)||state.monthKey!==currentMonthKey())return;if(state.overtimeMode?!overtimeAllowed():(!isWorkday(new Date())||Date.now()>=dayEndMs()))return;state.startedAt=Date.now();state.status='running';state.autoPaused=false;state.notice='';recordEvent('resume');saveState();render();}
       function pause(){rollToToday();autoFinishIfNeeded();if(state.status!=='running')return;capture();closeBreak();state.status='paused';state.autoPaused=true;state.notice='今天已暂停，点击继续后恢复。';recordEvent('pause');saveState();render();}
       function finish(){rollToToday();if(!['running','paused'].includes(state.status))return;settleDay('今天已结算，可按需手动开始加班。');render();}
@@ -757,7 +913,7 @@
       function selectedWorkdays() { return [...els.weekdayPicker.querySelectorAll('input:checked')].map((input) => Number(input.value)); }
       function updateSchedulePreview() { previewInsurance(); const salary = Number.parseFloat(els.monthlySalary.value) || 0; const start = timeMinutes(els.workStart.value, 600); const end = timeMinutes(els.workEnd.value, 1080); const breakStart = timeMinutes(els.breakStart.value, 720); const breakEnd = timeMinutes(els.breakEnd.value, 810); const lunchPaid = els.lunchPaid.checked; const minutes = lunchPaid ? Math.max(0, end - start) : Math.max(0, breakStart - start) + Math.max(0, end - breakEnd); const days = selectedWorkdays(); const plannedSeconds = monthWorkdaysFor(els.monthKey.value || state.monthKey, days) * minutes * 60; const rate = plannedSeconds > 0 ? salary / plannedSeconds : 0; const code = els.currency.value || 'CNY'; const symbol = currencySymbol(code); const extras = [lunchPaid ? '午餐带薪' : '午休不计费', els.overtimeEnabled.checked ? `加班 ${numeric(els.weekdayOvertimeMultiplier.value, 1.5)}×` : '未启用加班', els.deductionsEnabled.checked ? '已启用扣款估算' : '未启用扣款估算']; els.schedulePreview.querySelector('.schedule-card-copy').textContent = minutes > 0 && days.length ? `每天可计费 ${Math.floor(minutes / 60)} 小时${minutes % 60 ? ` ${minutes % 60} 分钟` : ''} · 每秒 ${symbol}${formatMoney(rate, 4)} · 已选 ${days.length} 天 · ${extras.join(' · ')}` : '请填写有效的工作时间并至少选择一个工作日。'; }
       function syncDialog() { const locked=state.status==='running'||state.status==='paused';const source=state.pendingSettings?.settings||state;$('deductionsDetailed').checked=source.deductionsDetailed;for(const i of source.deductionItems.length?source.deductionItems:insuranceDefaults())for(const key of Object.keys(i).filter(key=>key!=='key')){const el=$(i.key+'-'+key);if(key==='enabled')el.checked=i[key];else el.value=i[key];} $('specialDates').value=(source.specialDates||[]).join(', ');els.monthlySalary.value=source.monthlySalary;els.monthKey.value=source.monthKey;els.currency.value=source.currencyCode||'CNY';els.dialogCurrencyPrefix.textContent=currencySymbol(source.currencyCode||'CNY');els.workStart.value=source.workStart;els.workEnd.value=source.workEnd;els.breakStart.value=source.breakStart;els.breakEnd.value=source.breakEnd;els.autoStart.checked=source.autoStart;els.lunchPaid.checked=Boolean(source.lunchPaid);$('deductionPreset').value='none';els.breakQuota.value=source.breakQuota||'0';els.breakName.value=source.breakName||'';els.breakPaid.checked=Boolean(source.breakPaid);els.deductionsEnabled.checked=Boolean(source.deductionsEnabled);els.socialBase.value=source.socialBase||'';els.housingBase.value=source.housingBase||'';els.socialEmployeeRate.value=source.socialEmployeeRate||'';els.socialEmployerRate.value=source.socialEmployerRate||'';els.housingEmployeeRate.value=source.housingEmployeeRate||'';els.housingEmployerRate.value=source.housingEmployerRate||'';els.overtimeEnabled.checked=Boolean(source.overtimeEnabled);els.overtimeAutoStart.checked=Boolean(source.overtimeAutoStart);els.weekdayOvertimeMultiplier.value=source.weekdayOvertimeMultiplier||'1.5';els.restdayOvertimeMultiplier.value=source.restdayOvertimeMultiplier||'2';els.holidayOvertimeMultiplier.value=source.holidayOvertimeMultiplier||'3';els.weekdayPicker.querySelectorAll('input').forEach(input=>input.checked=(source.workdays||[]).includes(Number(input.value)));[els.monthlySalary,els.monthKey,els.currency,els.workStart,els.workEnd,els.breakStart,els.breakEnd,els.autoStart,els.lunchPaid,els.breakQuota,els.breakName,els.breakPaid,els.deductionsEnabled,els.socialBase,els.housingBase,els.socialEmployeeRate,els.socialEmployerRate,els.housingEmployeeRate,els.housingEmployerRate,els.overtimeEnabled,els.overtimeAutoStart,els.weekdayOvertimeMultiplier,els.restdayOvertimeMultiplier,els.holidayOvertimeMultiplier,els.saveSettings].forEach(el=>el.disabled=false);els.dialogLockNote.hidden=state.status==='idle';els.saveSettings.textContent=state.status!=='idle'?'保存，下个工作日生效':'保存并开始计费';els.dialogSubtitle.textContent=locked?'计费进行中也可以修改规则，今天按原规则结算，新规则从下一个工作日生效。':'币种只标记金额单位，不做汇率换算。';updateSchedulePreview(); }
-      function showSettingsDialog() { syncDialog(); if (typeof els.monthlyDialog.showModal === 'function') els.monthlyDialog.showModal(); else els.monthlyDialog.setAttribute('open', ''); }
+      function showSettingsDialog() { stopPrivacyReveal(); feedbackPrevious=null; syncDialog(); if (typeof els.monthlyDialog.showModal === 'function') els.monthlyDialog.showModal(); else els.monthlyDialog.setAttribute('open', ''); }
       function closeSettingsDialog() { if (typeof els.monthlyDialog.close === 'function') els.monthlyDialog.close(); else els.monthlyDialog.removeAttribute('open'); }
       function clearDeviceData() { if (!window.confirm('这会删除当前设备上 PayBeat 的工资规则、当天计时和历史记录。确定要清除并重新开始吗？')) return; try { Object.keys(localStorage).filter((key) => /^(paybeat|second-pay)/i.test(key)).forEach((key) => localStorage.removeItem(key)); } catch {} window.location.reload(); }
       buildInsurance();
@@ -773,10 +929,51 @@
         const insuranceError=validateInsurance(settings);if(insuranceError){alert(insuranceError);return;}if(state.status!=='idle'||elapsedMs()>0){state.pendingSettings={settings,effectiveDate:nextEffectiveDate(settings)};state.notice='新规则将于 '+state.pendingSettings.effectiveDate+' 生效；今天按原规则结算。';saveState();closeSettingsDialog();render();return;}
         applySettings(settings);state.pendingSettings=null;resetDay();saveState();closeSettingsDialog();if(state.autoStart)autoStartIfNeeded();else start();render();
       });
+      document.querySelectorAll('[data-reveal]').forEach(control=>{
+        control.addEventListener('pointerdown',startPrivacyReveal);
+        control.addEventListener('pointerleave',handlePrivacyPointerMove);
+        control.addEventListener('blur',stopPrivacyReveal);
+        control.addEventListener('contextmenu',event=>{event.preventDefault();stopPrivacyReveal();});
+        control.addEventListener('click',event=>event.preventDefault());
+        control.addEventListener('keydown',event=>{
+          if(event.key===' '||event.key==='Enter'){event.preventDefault();if(!event.repeat)startPrivacyReveal(event);}
+          else stopPrivacyReveal();
+        });
+      });
+      window.addEventListener('pointermove',handlePrivacyPointerMove);
+      window.addEventListener('pointerup',stopPrivacyReveal);
+      window.addEventListener('pointercancel',stopPrivacyReveal);
+      window.addEventListener('keyup',event=>{if(event.key===' '||event.key==='Enter')stopPrivacyReveal();});
+      window.addEventListener('keydown',event=>{if(event.key==='Escape')stopPrivacyReveal();});
+      window.addEventListener('scroll',stopPrivacyReveal,true);
+      window.addEventListener('pagehide',()=>{feedbackSuspended=true;feedbackPrevious=null;stopPrivacyReveal();});
+      window.addEventListener('pageshow',()=>{feedbackSuspended=false;feedbackPrevious=null;stopPrivacyReveal();render();});
+      window.addEventListener('blur',()=>{feedbackSuspended=true;feedbackPrevious=null;stopPrivacyReveal();render();});
+      window.addEventListener('focus',()=>{feedbackSuspended=false;feedbackPrevious=null;render();});
+      document.addEventListener('visibilitychange',()=>{
+        feedbackSuspended=document.visibilityState!=='visible';feedbackPrevious=null;stopPrivacyReveal();
+        if(!feedbackSuspended)state=loadState();render();
+      });
+      const togglePet=()=>{state.petEnabled=state.petEnabled===false;feedbackPrevious=null;saveState();render();};
+      els.petToggle.addEventListener('click',togglePet);els.petToggleGlobal.addEventListener('click',togglePet);
+      desktopMedia.addEventListener('change',()=>{feedbackPrevious=null;stopPrivacyReveal();render();});
+      reducedMotion.addEventListener('change',()=>{feedbackPrevious=null;render();});
       els.popupAction.addEventListener('click', () => { const popup = window.open(`${window.location.href.split('?')[0]}?popup=1`, 'second-pay-popup', 'popup=yes,width=430,height=820,resizable=yes'); if (!popup) els.liveRegion.textContent = '弹窗被浏览器拦截，请允许此页面打开弹窗。'; });
       els.mainAction.addEventListener('click', () => state.breakMode?toggleBreak(state.breakMode):state.status === 'running' ? pause() : start()); els.finishAction.addEventListener('click', finish); els.resetAction.addEventListener('click', reset); els.breakAction.addEventListener('click', () => toggleBreak(els.breakChoice.value)); els.overtimeAction.addEventListener('click', toggleOvertime); els.clearHistory.addEventListener('click', () => { if (!state.history.length || window.confirm('确定要清空全部结算记录吗？')) { state.history = []; saveState(); render(); } });
-      window.addEventListener('storage',event=>{if(event.key===STORAGE_KEY||event.key===null){state=loadState();render();if(!state.profileComplete)showSettingsDialog();}});document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){state=loadState();render();}});
-      render(); if (!state.profileComplete) window.setTimeout(showSettingsDialog, 0); ticker = window.setInterval(render, 1000);
+      window.addEventListener('storage',event=>{if(event.key===STORAGE_KEY||event.key===null){feedbackPrevious=null;stopPrivacyReveal();state=loadState();render();if(!state.profileComplete)showSettingsDialog();}});
+      if(window.paybeatDesktop){
+        document.body.classList.add('desktop-app');
+        window.paybeatDesktop.onAction(action=>{
+          if(action==='hide-pet'){state.petEnabled=false;saveState();render();}
+          else if(action==='show-pet'){state.petEnabled=true;saveState();render();}
+          else if(action==='toggle-work'){
+            if(state.breakMode)toggleBreak('work');
+            else if(state.status==='paused')start();
+            else toggleBreak('paid_slack');
+          }
+        });
+      }
+      render(); if (!state.profileComplete) window.setTimeout(showSettingsDialog, 0); ticker = window.setInterval(render, window.paybeatDesktop ? 100 : 1000);
     })();
   </script>
 </body>

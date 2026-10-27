@@ -2,3 +2,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+.desktop-runtime/
+本地桌宠/
+PayBeat-桌面桌宠-Windows.zip
+打开 PayBeat.exe
+*.lnk
