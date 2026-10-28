@@ -13,7 +13,7 @@ async function fields(p,values){await p.evaluate(values=>{for(const [id,v] of Ob
 async function setup(date='2026-10-22T11:00:00+08:00',values={},width=1440,route='/index.html') {
   const c=await browser.newContext({timezoneId:'Asia/Shanghai',viewport:{width,height:width===390?844:1000}});const p=await c.newPage();p.setDefaultTimeout(5000);
   p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.accept());
-  await p.clock.install({time:new Date(date)});await p.clock.pauseAt(new Date(date));await p.goto(origin+route);await p.locator('#monthlyDialog').waitFor({state:'visible'});
+  await p.clock.install({time:new Date(date)});await p.clock.pauseAt(new Date(date));await p.goto(origin+route);await p.locator('#monthlyDialog').waitFor({state:'hidden'});await p.click('#mainAction');await p.locator('#monthlyDialog').waitFor({state:'visible'});
   await fields(p,{monthlySalary:514800,autoStart:true,...values});await p.click('#saveSettings');assert.equal(await p.locator('#monthlyDialog').isVisible(),false);return {c,p};
 }
 async function seed(p,patch){await p.evaluate(patch=>{const key='paybeat-local-state-v8:'+encodeURIComponent(location.pathname);localStorage.setItem(key,JSON.stringify({...JSON.parse(localStorage.getItem(key)),...patch}));},patch);await p.reload();}
@@ -81,8 +81,8 @@ async function test(name,fn){const before=errors.length;await fn();assert.equal(
     const {c,p}=await setup();await seed(p,{automationVersion:10,normalEarnedAmount:null,normalRatePerSecond:null,accumulatedMs:1800000,startedAt:+new Date('2026-10-22T10:30:00+08:00'),breakMode:'short',breakPaid:null,shortBreakPaid:true,breakStartedAt:+new Date('2026-10-22T10:45:00+08:00')});assert.equal(await amount(p),3600);await p.clock.fastForward(1800000);await p.reload();assert.equal(await amount(p),3600);await p.selectOption('#breakChoice','work');await p.clock.fastForward(6.5*3600000);near((await read(p)).history[0].amount,23400);await c.close();
   });
   await test('fresh browser, clear device data and foreign currency preset guard',async()=>{
-    const {c,p}=await setup();await p.click('#openSettings');await p.click('#clearDeviceData');await p.locator('#monthlyDialog').waitFor({state:'visible'});assert.equal(await p.locator('#monthlySalary').inputValue(),'');await fields(p,{currency:'USD'});await p.locator('.advanced-settings>summary').click();await p.selectOption('#deductionPreset','shanghai-2026');assert.equal(await p.locator('#deductionPreset').inputValue(),'none');assert.equal(await p.locator('#pension-minBase').inputValue(),'');await c.close();
-    const other=await browser.newContext();const page=await other.newPage();await page.goto(origin+'/index.html');await page.locator('#monthlyDialog').waitFor({state:'visible'});assert.equal(await page.locator('#monthlySalary').inputValue(),'');await other.close();
+    const {c,p}=await setup();await p.click('#openSettings');await p.click('#clearDeviceData');await p.locator('#monthlyDialog').waitFor({state:'hidden'});await p.click('#mainAction');await p.locator('#monthlyDialog').waitFor({state:'visible'});assert.equal(await p.locator('#monthlySalary').inputValue(),'');await fields(p,{currency:'USD'});await p.locator('.advanced-settings>summary').click();await p.selectOption('#deductionPreset','shanghai-2026');assert.equal(await p.locator('#deductionPreset').inputValue(),'none');assert.equal(await p.locator('#pension-minBase').inputValue(),'');await c.close();
+  const other=await browser.newContext();const page=await other.newPage();await page.goto(origin+'/index.html');await page.locator('#monthlyDialog').waitFor({state:'hidden'});await page.click('#mainAction');await page.locator('#monthlyDialog').waitFor({state:'visible'});assert.equal(await page.locator('#monthlySalary').inputValue(),'');await other.close();
   });
   await test('mobile/desktop screenshots and setting dialog overflow',async()=>{
     const output=fs.mkdtempSync(path.join(os.tmpdir(),'paybeat-edge-shots-'));

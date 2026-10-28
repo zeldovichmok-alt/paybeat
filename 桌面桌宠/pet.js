@@ -25,7 +25,15 @@ const clamp=value=>Math.max(0,Math.min(1,value));
 const smooth=value=>{const t=clamp(value);return t*t*(3-2*t);};
 const mouth=()=>{const point=motionArt[currentSkin||'C'].mouth;return {x:56+32+(point[0]-32)*actor.sx+actor.x,y:51+64+(point[1]-64)*actor.sy+actor.y};};
 function coinProgress(now,active){return Math.min(.995,(anchor?.coinProgress||0)+(active&&anchor?Math.min(now-anchor.at,300)/1000*(anchor.coinSpeed||0):0));}
-const captions=['继续向前，每一步都算数','小路还长，收获在前方','今天也在稳稳向前'];
+const captions=['别急，钱正在按秒排队进场。','工位没动，余额动了。','工位是临时的，金币是真实的。','金币累积中。'];
+const CAPTION_INTERVAL=20000;
+let captionIndex=-1,captionChangedAt=-Infinity,captionEpoch=null;
+function workingCaption(now){
+  const epoch=latest?.journey?.epoch||'working';
+  if(captionEpoch!==epoch||captionChangedAt===-Infinity){captionEpoch=epoch;captionIndex=0;captionChangedAt=now;return captions[captionIndex];}
+  if(now-captionChangedAt>=CAPTION_INTERVAL){captionIndex=(captionIndex+1)%captions.length;captionChangedAt=now;}
+  return captions[captionIndex];
+}
 
 function motionOff(){return latest?.quiet||reducedMotion.matches||latest?.stale;}
 function clearEffects(){
@@ -67,11 +75,12 @@ function setSkin(value,now){
 }
 function updateStatus(now){
   if(!latest)return;
+  if(!latest.billable){captionChangedAt=-Infinity;}
   if(gesture&&gesture.end>now){
-    $('status').textContent=gesture.kind==='skin'?skins[currentSkin]+'，一起出发！':gesture.kind==='hello'?'收到！陪你再走一段':gesture.kind==='flower'?'路边的小花也在为你加油':gesture.kind==='hop'?'轻轻跨过，再往前一点':'沿着小路，继续向前';
+    $('status').textContent=gesture.kind==='skin'?skins[currentSkin]+'，一起出发！':gesture.kind==='hello'?'收到！陪你再走一段':gesture.kind==='flower'?'花在路边开，钱在账上来。':gesture.kind==='hop'?'轻轻跨过，再往前一点':'沿着小路，继续向前';
     return;
   }
-  $('status').textContent=latest.stale?'计时连接恢复中…':!latest.ready?'设置工资，开始这段旅程':latest.mode==='done'?'今天走过的路，都算数':latest.resting||latest.mode==='resting'?'歇一会儿，小路等你回来':latest.mode==='paused'?'休息中，收获都在':latest.mode==='overtime'?'夜路继续，收获也在继续':latest.billable?captions[Math.floor(distance/600)%captions.length]:'等到上班，一起出发';
+  $('status').textContent=latest.stale?'计时连接恢复中…':!latest.ready?'设置工资，开始这段旅程':latest.mode==='done'?'今天走过的路，都算数':latest.resting||latest.mode==='resting'?'歇一会儿，小路等你回来':latest.mode==='paused'?'休息中，收获都在':latest.mode==='overtime'?'夜路继续，收获也在继续':latest.billable?workingCaption(now):'等到上班，一起出发';
 }
 function render(state){
   const now=performance.now(), initial=!latest, previous=latest;
@@ -271,4 +280,3 @@ setInterval(()=>{
     companion.classList.remove('working');$('status').textContent='计时连接恢复中…';
   }
 },1000);
-

@@ -62,4 +62,4 @@ node pay-server.js
 
 运行预览服务后，可以依次运行 `node 验证/paybeat-regression.cjs`、`node 验证/paybeat-edge-cases.cjs`、`node 验证/paybeat-settings.cjs` 和 `node 验证/paybeat-v2-interactions.cjs`。Windows 桌宠生成后运行 `node 验证/paybeat-desktop.cjs`、`node 验证/paybeat-updates.cjs` 和 `node 验证/paybeat-upgrade.cjs`。脚本使用 Playwright 与 Edge；可通过 `PAYBEAT_PLAYWRIGHT` 指定 Playwright 安装路径，通过 `PAYBEAT_TEST_URL` 指定预览地址。
 
-V2 预览图位于 `预览图/V2/`，桌宠预览位于 `预览图/V2-桌宠/`；本轮视频为 `桌宠动作预览-V2.2-演示.webm`，验收记录位于 `验证/V2-验收记录.md`。运行 `验证/package-paybeat.ps1` 可重新生成源码文档包和文件校验清单，运行 `桌面桌宠/package-portable.ps1` 生成桌面应用包。两种包均不含个人工资、浏览器设置或历史记录；仅桌面应用包包含 Electron 运行时。GitHub 已发布版本为 V2.1.0；V2.2 仅在本地等待确认。
+V2 预览图位于 `预览图/V2/`，桌宠预览位于 `预览图/V2-桌宠/`；本轮视频为 `桌宠动作预览-V2.2-演示.webm`，验收记录位于 `验证/V2-验收记录.md`。运行 `验证/package-paybeat.ps1` 可重新生成源码文档包和文件校验清单，运行 `桌面桌宠/package-portable.ps1` 生成桌面应用包。两种包均不含个人工资、浏览器设置或历史记录；仅桌面应用包包含 Electron 运行时。GitHub 当前发布版本为 V2.2.0；本次主分支同步包含 V2.3 优化文档、首次打开体验调整和桌宠文案小修。

@@ -19,6 +19,8 @@ async function launch(userData = profile) {
   tool = app.windows().find(w => w.url().endsWith('/index.html'));
   pet = app.windows().find(w => w.url().endsWith('/pet.html'));
   for (const page of [tool, pet]) page.on('pageerror', error => errors.push(error.message));
+  await tool.locator('#monthlyDialog').waitFor({ state: 'hidden' });
+  await tool.locator('#mainAction').click();
   await tool.locator('#monthlyDialog').waitFor({ state: 'visible' });
   await expect.poll(() => app.evaluate(({BrowserWindow})=>BrowserWindow.getAllWindows().find(w=>w.webContents.getURL().endsWith('/pet.html'))?.isAlwaysOnTop())).toBe(true);
   // Capture the real native menu without leaving an OS popup over the test window.

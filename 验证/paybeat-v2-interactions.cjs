@@ -12,6 +12,8 @@ async function setup({ mobile = false, reducedMotion = 'no-preference', time = '
   await page.clock.install({ time: date });
   await page.clock.pauseAt(date);
   await page.goto(origin + '/index.html' + (popup ? '?popup=1' : ''));
+  await page.locator('#monthlyDialog').waitFor({ state: 'hidden' });
+  await page.locator('#mainAction').click();
   await page.locator('#monthlyDialog').waitFor({ state: 'visible' });
   await page.locator('#monthlySalary').fill('514800');
   if (overtime) {

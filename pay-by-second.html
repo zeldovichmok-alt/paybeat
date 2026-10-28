@@ -245,7 +245,7 @@
     .popup-mode .timer-panel { min-height: 0; padding: 18px; border-radius: 16px; box-shadow: 0 12px 35px rgba(0,0,0,.22); }
     .popup-mode .eyebrow { font-size: 10px; letter-spacing: .1em; }
     .popup-mode .timer-wrap { padding: 28px 0 22px; }
-    .popup-mode .timer { font-size: clamp(48px, 15vw, 72px); letter-spacing: -.07em; }
+    .popup-mode .timer { font-size: clamp(42px, 13vw, 62px); letter-spacing: -.07em; }
     .popup-mode .earn-stage { margin-top: 18px; padding: 16px 17px 14px; border-radius: 14px; }
     .popup-mode .money { font-size: clamp(42px, 13vw, 62px); }
     .popup-mode .timer-meta { padding-top: 16px; gap: 18px; }
@@ -328,13 +328,13 @@
     .timer-panel::after { width: 100%; height: 100%; right: 0; top: 0; border: 0; border-radius: 0; box-shadow: none; opacity: .4; background-image: linear-gradient(rgba(17,17,17,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,.04) 1px, transparent 1px); background-size: 32px 32px; pointer-events: none; }
     .eyebrow { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .18em; }
     .timer-wrap { padding: 76px 0 52px; }
-    .timer { font-size: clamp(76px, 13vw, 178px); color: var(--text); font-weight: 800; letter-spacing: -.055em; }
+    .timer { font-size: clamp(54px, 8vw, 88px); color: var(--text); font-weight: 800; letter-spacing: -.055em; }
     .timer span { color: var(--muted-2); }
     .earn-stage { margin-top: 34px; padding: 24px 26px 21px; border: 1px solid var(--line); border-radius: 0; background: var(--accent); box-shadow: none; }
     .money-label, .earn-live, .earn-ticker { color: var(--text); }
     .earn-live { font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
     .earn-live::before { border-radius: 0; background: var(--text); box-shadow: none; }
-    .money { color: var(--text); text-shadow: none; font-size: clamp(62px, 10vw, 122px); font-weight: 800; letter-spacing: -.05em; }
+    .money { color: var(--text); text-shadow: none; font-size: clamp(54px, 8vw, 88px); font-weight: 800; letter-spacing: -.05em; }
     .money .currency { color: var(--text); }
     .earn-ticker strong { color: var(--text); }
     .money.is-ticking { animation: editorial-tick 1s steps(2, end) infinite; }
@@ -388,13 +388,13 @@
       .settings-summary, .history-panel { box-shadow: 4px 4px 0 rgba(17,17,17,.12); }
       .controls { background: rgba(233,232,227,.94); border-top-color: var(--line); }
     }
-    .money-value .currency { font-size: .28em; letter-spacing: 0; }
+    .money-value .currency { font-size: 1em; letter-spacing: -.05em; vertical-align: baseline; margin-right: .12em; }
     .money-reveal:focus-visible, .reveal-secondary:focus-visible { outline: 3px solid #405f46; outline-offset: 3px; }
     .pet-toggle-global { min-height: 44px; }
     .pet-panel { order: -1; }
     .desktop-app .pet-panel { display: none; }
     .pet-caption, .money-reveal-hint { line-height: 1.5; }
-    @media (max-width: 430px) { .money { font-size: clamp(30px,10vw,42px); } .earn-heading { flex-wrap: wrap; } }
+    @media (max-width: 430px) { .timer, .money { font-size: clamp(30px,10vw,42px); } .earn-heading { flex-wrap: wrap; } }
     @media (prefers-reduced-motion: reduce) {
       .money.is-ticking, .income-beat.is-pulsing .income-spark, .pet-sprite.is-collecting .pet-character, .pet-coin.is-visible { animation: none !important; }
       .pet-sprite, .pet-ground { transition: none; }
@@ -999,7 +999,7 @@
       reducedMotion.addEventListener('change',()=>{feedbackPrevious=null;render();});
       els.popupAction.addEventListener('click', () => { const popup = window.open(`${window.location.href.split('?')[0]}?popup=1`, 'second-pay-popup', 'popup=yes,width=430,height=820,resizable=yes'); if (!popup) els.liveRegion.textContent = '弹窗被浏览器拦截，请允许此页面打开弹窗。'; });
       els.mainAction.addEventListener('click', () => state.breakMode?toggleBreak(state.breakMode):state.status === 'running' ? pause() : start()); els.finishAction.addEventListener('click', finish); els.resetAction.addEventListener('click', reset); els.breakAction.addEventListener('click', () => toggleBreak(els.breakChoice.value)); els.overtimeAction.addEventListener('click', toggleOvertime); els.clearHistory.addEventListener('click', () => { if (!state.history.length || window.confirm('确定要清空全部结算记录吗？')) { state.history = []; saveState(); render(); } });
-      window.addEventListener('storage',event=>{if(event.key===STORAGE_KEY||event.key===null){feedbackPrevious=null;stopPrivacyReveal();state=loadState();render();if(!state.profileComplete)showSettingsDialog();}});
+      window.addEventListener('storage',event=>{if(event.key===STORAGE_KEY||event.key===null){feedbackPrevious=null;stopPrivacyReveal();state=loadState();render();}});
       if(window.paybeatDesktop){
         document.body.classList.add('desktop-app');
         window.paybeatDesktop.onAction(action=>{
@@ -1012,10 +1012,8 @@
           }
         });
       }
-      render(); if (!state.profileComplete) window.setTimeout(showSettingsDialog, 0); ticker = window.setInterval(render, window.paybeatDesktop ? 100 : 1000);
+      render(); ticker = window.setInterval(render, window.paybeatDesktop ? 100 : 1000);
     })();
   </script>
 </body>
 </html>
-
-

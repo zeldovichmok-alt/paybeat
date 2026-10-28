@@ -23,8 +23,8 @@
 .coin{display:block;width:28px;height:28px;shape-rendering:crispEdges;filter:drop-shadow(1px 1px #70450f44)}
 .next-reward[data-kind="big"] .coin{transform:scale(1.28);transform-origin:center}
 .next-reward[data-kind="flag"] .coin{display:none}.next-reward .flag{display:none}.next-reward[data-kind="flag"] .flag{display:block}
-.flag{display:block;width:3px;height:37px;background:#354e45;position:relative}.flag:after{content:"";position:absolute;left:3px;top:1px;width:23px;height:16px;background:#d8ff35;clip-path:polygon(0 0,100% 0,74% 50%,100% 100%,0 100%)}
-.earned-flag{position:absolute;left:132px;bottom:9px;opacity:0;z-index:6}
+.flag{display:block;width:4px;height:36px;background:#41564f;position:relative;box-shadow:1px 0 #6f8174}.flag:before{content:"";position:absolute;left:-4px;bottom:-2px;width:12px;height:3px;background:#8b7254;box-shadow:2px 2px #6d5947}.flag:after{content:"";position:absolute;left:4px;top:2px;width:27px;height:16px;background:linear-gradient(90deg,#edb06a 0 25%,#d98658 25% 100%);clip-path:polygon(0 0,100% 0,84% 25%,100% 50%,84% 75%,100% 100%,0 100%);filter:drop-shadow(1px 1px 0 #a85f4d)}
+.earned-flag{position:absolute;left:132px;bottom:7px;opacity:0;z-index:6}
 .combo{position:absolute;right:2px;top:19px;font-size:10px;font-weight:900;color:#815010;background:#fff4c6;padding:3px 7px;border-radius:6px;opacity:0;z-index:8;white-space:nowrap}
 .butterfly{position:absolute;left:138px;bottom:36px;width:3px;height:5px;background:#765267;opacity:0;z-index:5}
 .butterfly:before,.butterfly:after{content:"";position:absolute;top:-2px;width:6px;height:7px;background:#e698bb}
@@ -45,4 +45,3 @@ body[data-mode="overtime"] .speech{background:#253f52;color:#fff5cf;border-color
 body.quiet *,body.reduced-motion *{animation:none!important}
 body.quiet .next-reward,body.quiet .combo,body.quiet .spark,body.quiet .butterfly,body.quiet .earned-flag,body.reduced-motion .spark,body.reduced-motion .butterfly{visibility:hidden}
 @media(prefers-reduced-motion:reduce){*{animation:none!important}}
-

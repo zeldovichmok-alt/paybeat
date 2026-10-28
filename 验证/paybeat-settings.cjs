@@ -14,7 +14,7 @@ async function setup(date='2026-10-22T14:00:00+08:00',values={},width=1440){
   const c=await browser.newContext({timezoneId:'Asia/Shanghai',viewport:{width,height:width===390?844:1000}});
   const p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));p.on('dialog',d=>d.accept());
   await p.clock.install({time:new Date(date)});await p.clock.pauseAt(new Date(date));
-  await p.goto(origin+'/index.html');await p.locator('#monthlyDialog').waitFor({state:'visible'});
+  await p.goto(origin+'/index.html');await p.locator('#monthlyDialog').waitFor({state:'hidden'});await p.click('#mainAction');await p.locator('#monthlyDialog').waitFor({state:'visible'});
   assert.equal(await p.locator('#settingsApplyChoice').isVisible(),false);
   await fields(p,{monthlySalary:514800,...values});await p.click('#saveSettings');return {c,p};
 }
